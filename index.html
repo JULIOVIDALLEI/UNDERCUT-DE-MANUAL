@@ -337,7 +337,7 @@ const LS = {
 };
 const st = {
   data: null, view: (v => v === 'finde' ? 'agenda' : v)(LS.get('view','agenda')), sel: LS.get('sel','f1'), favs: LS.get('favs', SERIES.map(s=>s.key)),
-  stTab: 'drivers', open: null, cls: LS.get('cls','motogp'), finde: null, findeCls: 'all', wx: LS.get('wx', {}), meta: LS.get('meta', null),
+  stTab: 'drivers', open: null, cls: LS.get('cls','motogp'), wxs: LS.get('wxs', {}), finde: null, findeCls: 'all', wx: LS.get('wx', {}), meta: LS.get('meta', null),
   al: LS.get('alerts', { on:false, series: Object.fromEntries([...SERIES, ...SUBS].map(s => [s.key, true])), tipos: { clasif:true, sprint:true, carrera:true, libres:false }, t:0 }), calSeason: {}, tv: LS.get('tv', null), status: null, faces: {}, news: LS.get('news', null), newsEn: LS.get('newsEn', true), resEv: {}, resSe: {}, loading: false, offline: false,
 };
 const $ = (id) => document.getElementById(id);
@@ -388,7 +388,22 @@ function icsEvent(k, ev, se){
     `SUMMARY:${icsEsc(`${S[k].short} · ${se.name} — ${ev.name}`)}`, `LOCATION:${icsEsc(ev.circuit || ev.location)}`,
     'BEGIN:VALARM','TRIGGER:-PT30M','ACTION:DISPLAY',`DESCRIPTION:${icsEsc(S[k].short+' '+se.name)}`,'END:VALARM','END:VEVENT'].join('\r\n');
 }
+const IS_APP = /UNDApp/.test(navigator.userAgent);
+const gDate = (ms) => new Date(ms).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
 function downloadIcs(name, items){
+  if (IS_APP){                                    // en la app de Android: Google Calendar directamente
+    if (items.length === 1){
+      const { k, ev, se } = items[0];
+      const u = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(`${S[k].short} · ${se.name} — ${ev.name}`) +
+        '&dates=' + gDate(tms(se)) + '/' + gDate(Math.min(endms(se), tms(se) + 6*3600e3)) + '&location=' + encodeURIComponent(ev.circuit || ev.location || '');
+      location.href = u;
+    } else {
+      const k = S[items[0].k].parent || items[0].k;
+      const url = new URL('data/cal/' + k + '.ics', location.href).href.replace(/^https?:/, 'webcal:');
+      location.href = 'https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(url);
+    }
+    return;
+  }
   const body = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//PitWall//ES','CALSCALE:GREGORIAN', ...items.map(x => icsEvent(x.k, x.ev, x.se)), 'END:VCALENDAR'].join('\r\n');
   const url = URL.createObjectURL(new Blob([body], { type:'text/calendar' }));
   const a = document.createElement('a'); a.href = url; a.download = name.replace(/[^\w\-]+/g,'_') + '.ics';
@@ -434,26 +449,46 @@ function tvLine(k, ev, se){
 /* ---------- Tiempo (Open-Meteo) ---------- */
 const wxKey = (ev) => ev && ev.lat != null ? `${(+ev.lat).toFixed(2)},${(+ev.lon).toFixed(2)}` : null;
 let wxBusy = false;
+const ISO2 = { spain:'ES', italy:'IT', france:'FR', germany:'DE', portugal:'PT', austria:'AT', belgium:'BE', netherlands:'NL', 'united kingdom':'GB', uk:'GB', 'great britain':'GB', usa:'US', 'united states':'US', canada:'CA', mexico:'MX', brazil:'BR', argentina:'AR', japan:'JP', china:'CN', australia:'AU', qatar:'QA', bahrain:'BH', 'saudi arabia':'SA', uae:'AE', 'united arab emirates':'AE', singapore:'SG', malaysia:'MY', thailand:'TH', indonesia:'ID', india:'IN', hungary:'HU', 'czech republic':'CZ', czechia:'CZ', finland:'FI', sweden:'SE', estonia:'EE', greece:'GR', croatia:'HR', kenya:'KE', chile:'CL', paraguay:'PY', monaco:'MC', azerbaijan:'AZ', turkey:'TR', poland:'PL', 'south africa':'ZA', 'san marino':'SM' };
+const GEO = LS.get('geo', {});
+async function geoFix(ev){                       // si el servidor no trae coordenadas, las busca el móvil
+  if (ev.lat != null) return;
+  const iso = (ev.iso || ISO2[String(ev.country || '').toLowerCase()] || '').toUpperCase();
+  const tries = [ev.city, ev.circuit, String(ev.location || '').split(',')[0]].map(x => String(x || '').replace(/\b(international|motor|super|speedway|raceway|circuit|circuito|autodromo|autódromo|ring|park)\b/gi, '').trim()).filter(x => x.length > 2);
+  for (const q of [...new Set(tries)]){
+    const k = q + '|' + iso;
+    if (!(k in GEO)){
+      try{
+        const j = await (await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json${iso ? '&countryCode=' + iso : ''}`)).json();
+        const r = j?.results?.[0]; GEO[k] = r ? [+r.latitude.toFixed(3), +r.longitude.toFixed(3)] : null; LS.set('geo', GEO);
+      }catch{ continue; }
+    }
+    if (GEO[k]){ ev.lat = GEO[k][0]; ev.lon = GEO[k][1]; return; }
+  }
+}
 async function loadWeather(){
   if (window.DEMO_DATA || wxBusy || !st.data) return;
   wxBusy = true;
   const now = Date.now(), locs = new Map();
+  for (const k of Object.keys(st.data.series || {})) for (const ev of [...(sd(k)?.events || []), ...(sd(k)?.next?.events || [])])
+    if (ev.lat == null && (ev.sessions || []).some(se => endms(se) > now - 6*3600e3 && tms(se) < now + WX_DAYS*864e5 && !st.wxs?.[`${ev.id}|${se.id || se.name}`])) await geoFix(ev);
   for (const k of Object.keys(st.data.series || {})) for (const ev of [...(sd(k)?.events || []), ...(sd(k)?.next?.events || [])]){
     const key = wxKey(ev); if (!key || locs.has(key)) continue;
-    if ((ev.sessions || []).some(se => endms(se) > now - 6*3600e3 && tms(se) < now + 15*864e5)) locs.set(key, ev);
+    if ((ev.sessions || []).some(se => endms(se) > now - 6*3600e3 && tms(se) < now + WX_DAYS*864e5 && !st.wxs?.[`${ev.id}|${se.id || se.name}`])) locs.set(key, ev);
   }
   let changed = false;
   for (const [key, ev] of locs){
     const c = st.wx[key]; if (c && now - c.t < 45*60e3) continue;
     try{
-      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${ev.lat}&longitude=${ev.lon}&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&timezone=UTC&forecast_days=16`);
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${ev.lat}&longitude=${ev.lon}&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&timezone=UTC&forecast_days=16`, { cache: 'no-store' });
       const j = await r.json();
       if (j?.hourly?.time){ st.wx[key] = { t: now, h: j.hourly }; changed = true; }
     }catch{}
   }
   for (const k of Object.keys(st.wx)) if (now - st.wx[k].t > 2*864e5) { delete st.wx[k]; changed = true; }
   wxBusy = false;
-  if (changed){ LS.set('wx', st.wx); render(); }
+  if (changed){ LS.set('wx', st.wx); }
+  if (changed || !loadWeather.once){ loadWeather.once = true; render(); }
 }
 function wxAt(ev, ms){
   const c = st.wx[wxKey(ev)]; if (!c) return null;
@@ -462,9 +497,18 @@ function wxAt(ev, ms){
   return { temp: c.h.temperature_2m[i], pp: c.h.precipitation_probability?.[i], code: c.h.weather_code[i], wind: c.h.wind_speed_10m?.[i] };
 }
 const WXI = (c) => c === 0 ? ['☀️','Despejado'] : c <= 2 ? ['🌤️','Poco nuboso'] : c === 3 ? ['☁️','Nublado'] : c <= 48 ? ['🌫️','Niebla'] : c <= 57 ? ['🌦️','Llovizna'] : c <= 67 ? ['🌧️','Lluvia'] : c <= 77 ? ['🌨️','Nieve'] : c <= 82 ? ['🌧️','Chubascos'] : c <= 86 ? ['🌨️','Nieve'] : ['⛈️','Tormenta'];
-function wxLine(ev, se, big){
-  if (endms(se) < Date.now()) return '';
-  const w = wxAt(ev, tms(se)); if (!w || w.temp == null) return '';
+const WX_DAYS = 6;
+function wxLine(ev, se, big, hint){
+  const now = Date.now();
+  if (endms(se) < now) return '';
+  if (tms(se) - now > WX_DAYS*864e5){
+    if (!hint || se.tbc) return '';
+    const from = new Date(tms(se) - WX_DAYS*864e5);
+    return `<div class="wx" style="color:var(--dim)">🌦️ Tiempo disponible desde el ${esc(fW.format(from))} ${from.getDate()}</div>`;
+  }
+  const v = st.wxs?.[`${ev.id}|${se.id || se.name}`];
+  const w = v ? { temp: v[0], pp: v[1], code: v[2], wind: v[3] } : wxAt(ev, tms(se));
+  if (!w || w.temp == null) return '';
   const [ic, tx] = WXI(w.code);
   return `<div class="wx ${w.pp >= 50 ? 'rain' : ''}">${ic} ${Math.round(w.temp)}°<span class="wxt"> · ${tx}</span>${w.pp != null ? ` · 💧 ${w.pp}%` : ''}${big && w.wind != null ? ` · 💨 ${Math.round(w.wind)} km/h` : ''}</div>`;
 }
@@ -498,6 +542,7 @@ async function testAlert(){
 }
 
 /* ---------- MotoGP · Moto2 · Moto3 ---------- */
+const apkUrl = () => { const repo = st.meta?.repo || `${location.hostname.split('.')[0]}/${location.pathname.split('/')[1] || ''}`; return `https://github.com/${repo}/releases/latest/download/UND.apk`; };
 const ck = () => st.sel === 'motogp' ? (st.cls || 'motogp') : st.sel;
 const clsSeg = () => st.sel !== 'motogp' ? '' : `<div class="seg cls">${CLASSES.map(c => `<button class="${ck()===c?'on':''}" data-cls="${c}" style="--c:${S[c].color}">${S[c].short}</button>`).join('')}</div>`;
 
@@ -677,7 +722,7 @@ function vCal(){
       </button>
       ${open ? `<div class="sess">${ev.sessions.map(se => `<div class="row">
           <div class="time">${se.tbc?'TBC':fT.format(tms(se))}<small>${fW.format(tms(se))} ${new Date(tms(se)).getDate()}</small></div>
-          <div class="grow"><div class="t1">${isLive(se)?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}${wantsAlert(k, se) && tms(se) > now ? '<span class="bell">🔔</span>' : ''}</div>${se.result?.[0]?`<div class="t2">🏆 ${esc(se.result[0].name)}</div>`:(endms(se) > now ? wxLine(ev, se) + tvLine(k, ev, se) : '')}</div>
+          <div class="grow"><div class="t1">${isLive(se)?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}${wantsAlert(k, se) && tms(se) > now ? '<span class="bell">🔔</span>' : ''}</div>${se.result?.[0]?`<div class="t2">🏆 ${esc(se.result[0].name)}</div>`:(endms(se) > now ? wxLine(ev, se, false, true) + tvLine(k, ev, se) : '')}</div>
           ${se.result?.length ? `<button class="btn" style="height:34px" data-goto-res="${k}|${esc(ev.id)}|${esc(se.name)}">Ver</button>` : tms(se) > now ? icsBtn(k,ev,se) : ''}
         </div>`).join('')}</div>` : ''}
     </div>`;
@@ -782,7 +827,7 @@ function vFinde(){
     buf += `<div class="fs ${past && !live ? 'past' : ''} ${live ? 'live' : ''}">
       <div class="time">${se.tbc ? 'TBC' : fT.format(t)}<small>${fW.format(t)}</small></div>
       <div class="grow"><div class="t1" style="white-space:normal">${S[x.k].parent ? `<span class="sbadge" style="--c:${S[x.k].color}">${S[x.k].short}</span>` : (k === 'motogp' ? `<span class="sbadge" style="--c:${S.motogp.color}">MotoGP</span>` : '')}${esc(se.name)}${wantsAlert(x.k, se) && !past ? '<span class="bell">🔔</span>' : ''} ${status}</div>
-        ${chgBadge(se)}${!past ? wxLine(x.ev, se, true) + tvLine(x.k, x.ev, se) : ''}${res}</div>
+        ${chgBadge(se)}${!past ? wxLine(x.ev, se, true, true) + tvLine(x.k, x.ev, se) : ''}${res}</div>
       ${!past ? icsBtn(x.k, x.ev, se) : ''}
     </div>`;
   }
@@ -840,6 +885,11 @@ function openSheet(){
     <div class="t2" style="white-space:normal;margin-top:8px">Los cambios se aplican en unos 5 minutos. Verás 🔔 junto a las sesiones que te avisarán.</div>
     <h2>Noticias</h2>
     <button class="tog" style="width:100%;text-align:left;--c:#3b82f6" id="newsEn"><div class="grow"><div class="t1">Incluir medios en inglés</div><div class="t2" style="white-space:normal">Más cobertura en IndyCar, NASCAR, IMSA y WEC</div></div><span class="sw ${st.newsEn?'on':''}"></span></button>
+    <h2>📲 App para Android</h2>
+    ${IS_APP ? `<div class="t2" style="white-space:normal">Estás usando la app de Android de UND. Se actualiza sola: no hace falta reinstalarla.</div>`
+      : `<div class="t2" style="white-space:normal">Instalador directo para cualquier Android, sin Play Store.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><a class="btn pri" style="text-decoration:none" href="${esc(apkUrl())}">⬇️ Descargar UND.apk</a></div>
+    <div class="steps" style="font-size:12.5px">Al abrir el archivo, Android te pedirá permiso para <b>instalar apps de origen desconocido</b>: actívalo para Chrome y pulsa <b>Instalar</b>. Si sale un aviso de Play Protect, pulsa <b>Instalar de todos modos</b>.</div>`}
     <h2>Dónde verlo</h2>
     <div class="t2" style="white-space:normal">${esc(st.tv?.aviso || 'Debajo de cada sesión verás el canal oficial en España.')}</div>
     <h2>Calendario del móvil</h2>
@@ -909,6 +959,7 @@ window.addEventListener('popstate', () => { if (st.view === 'finde'){ st.view = 
 async function load(){
   if (window.DEMO_DATA){ st.data = window.DEMO_DATA; st.news = window.DEMO_NEWS || null; render(); return; }
   if (st.loading) return;
+  fetch('data/weather.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(w => { if (w?.s && w.updated !== st.wxsAt){ const first = !!st.wxsAt; st.wxsAt = w.updated; st.wxs = w.s; LS.set('wxs', w.s); if (first || Object.keys(w.s).length) render(); } }).catch(() => {});
   fetch('data/meta.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(m => { if (m?.topic && m.topic !== st.meta?.topic){ st.meta = m; LS.set('meta', m); } }).catch(() => {});
   if (st.al.on && Date.now() - (st.al.pub || 0) > 10*3600e3) publishAlerts(true);
   fetch('data/status.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(x => { if (x?.checked){ st.status = x; renderHeader(); } }).catch(() => {});

@@ -585,6 +585,46 @@ async function updateGeo(series) {
   if (JSON.stringify(db) !== before) { await fs.writeFile(PLACES_OUT, JSON.stringify(db)); log(`Coordenadas: ${calls} búsquedas nuevas.`); }
 }
 
+// ---------------------------------------------------------------- TIEMPO POR SESIÓN (Open-Meteo)
+// Cada día (se refresca cada 3 h) se busca la previsión de todas las sesiones de los próximos 6 días.
+const WX_OUT = new URL('../data/weather.json', import.meta.url);
+async function updateWeather(series) {
+  let prev = { loc: {} }; try { prev = JSON.parse(await fs.readFile(WX_OUT, 'utf8')); if (!prev.loc) prev.loc = {}; } catch {}
+  const now = Date.now(), want = new Map(); // "lat,lon" -> [{ id, t }]
+  for (const s of Object.values(series)) for (const ev of [...(s.events || []), ...(s.next?.events || [])]) {
+    if (ev.lat == null) continue;
+    const key = `${(+ev.lat).toFixed(2)},${(+ev.lon).toFixed(2)}`;
+    for (const se of ev.sessions || []) {
+      const t = Date.parse(se.start); if (!t || se.tbc) continue;
+      if (t < now - 6 * 3600e3 || t > now + 6 * 864e5) continue; // solo desde 6 días antes
+      if (!want.has(key)) want.set(key, { lat: ev.lat, lon: ev.lon, list: [] });
+      want.get(key).list.push({ id: `${ev.id}|${se.id || se.name}`, t });
+    }
+  }
+  const out = { updated: new Date().toISOString(), loc: {}, s: {} };
+  let calls = 0;
+  for (const [key, w] of want) {
+    let h = prev.loc[key]?.h, t = prev.loc[key]?.t || 0;
+    if (!h || now - t > 3 * 3600e3) {
+      try {
+        const j = await getJSON(`https://api.open-meteo.com/v1/forecast?latitude=${w.lat}&longitude=${w.lon}&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&timezone=UTC&forecast_days=8`, { retries: 1, timeout: 15000 });
+        if (j?.hourly?.time) { h = j.hourly; t = now; calls++; }
+      } catch (e) { log('  tiempo:', e.message); }
+    }
+    if (!h) continue;
+    out.loc[key] = { t, h };
+    for (const x of w.list) {
+      const d = new Date(x.t); d.setUTCMinutes(0, 0, 0);
+      const i = h.time.indexOf(d.toISOString().slice(0, 13) + ':00');
+      if (i >= 0 && h.temperature_2m[i] != null) out.s[x.id] = [Math.round(h.temperature_2m[i]), h.precipitation_probability?.[i] ?? null, h.weather_code[i], h.wind_speed_10m?.[i] != null ? Math.round(h.wind_speed_10m[i]) : null];
+    }
+  }
+  const same = JSON.stringify(out.s) === JSON.stringify(prev.s || {}) && JSON.stringify(Object.keys(out.loc)) === JSON.stringify(Object.keys(prev.loc || {}));
+  if (same && !calls) return;
+  await fs.writeFile(WX_OUT, JSON.stringify(out));
+  log(`Tiempo: ${Object.keys(out.s).length} sesiones con previsión (${calls} consultas nuevas).`);
+}
+
 // ---------------------------------------------------------------- AVISOS 15 MIN ANTES (ntfy)
 // La app guarda tus preferencias en el tema "<tema>-cfg" de ntfy; aquí se leen y se programan
 // los avisos en ntfy con entrega diferida, para que lleguen justo 15 minutos antes.
@@ -736,6 +776,7 @@ async function main() {
   markChanges(prev.series || {}, out.series);
   try { await fs.rm(FACES_OUT, { force: true }); } catch {} // fotos de pilotos desactivadas: se borra el archivo antiguo
   try { await updateGeo(out.series); } catch (e) { log('Coordenadas ERROR:', e.message); }
+  try { await updateWeather(out.series); } catch (e) { log('Tiempo ERROR:', e.message); }
   try { await updateAlerts(out.series); } catch (e) { log('Avisos ERROR:', e.message); }
 
   if (JSON.stringify(out.series) === JSON.stringify(prev.series)) { log('Sin cambios.'); return; }

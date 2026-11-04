@@ -4,7 +4,7 @@ App para el móvil (Samsung S26 Ultra / cualquier Android) con calendario, horar
 
 - Se instala como app desde Chrome (icono propio, pantalla completa, sin barra del navegador).
 - Los datos se actualizan solos **cada 5 minutos** con GitHub Actions (gratis; es el mínimo que permite GitHub) y la app comprueba si hay novedades **cada minuto** mientras está abierta.
-- **Tiempo:** previsión (Open-Meteo) en el circuito para la hora de cada sesión.
+- **Tiempo:** cada día (se refresca cada 3 h) se busca automáticamente la previsión (Open-Meteo) de todas las sesiones de los próximos 6 días, en el circuito y a la hora de cada sesión. Para sesiones más lejanas se indica desde qué día habrá previsión.
 - **Modo fin de semana:** pantalla con todas las sesiones del finde (MotoGP con Moto2 y Moto3), tiempo, canal, cuenta atrás y podios.
 - **MotoGP, Moto2 y Moto3:** calendario, resultados y mundial de cada categoría.
 - **Avisos 15 min antes** (app gratuita ntfy): se activan en ⚙ Ajustes, eligiendo series y tipo de sesión.
@@ -57,7 +57,15 @@ Si la fuente principal falla, la serie usa TheSportsDB como respaldo, y si todo 
 
 **Mejorar IndyCar / WRC / WEC / IMSA / SBK:** la clave gratuita de TheSportsDB (`123`) es compartida y limitada. Con la clave Premium (unos 9 $/mes) los datos son más completos: en el repositorio, *Settings → Secrets and variables → Actions → New repository secret*, nombre `TSDB_KEY`, valor tu clave.
 
-## Convertirla en APK (opcional)
+## Instalador directo para Android (APK)
+
+1. Crea el archivo `.github/workflows/build-apk.yml` (copia el de esta carpeta).
+2. **Actions → Crear instalador APK → Run workflow** (tarda unos 5 minutos).
+3. El instalador queda en `https://github.com/USUARIO/REPO/releases/latest/download/UND.apk` y la app tiene un botón para descargarlo (⚙ Ajustes → App para Android).
+
+La app de Android abre la web de UND por dentro, así que se actualiza sola: solo hay que volver a generar el APK si cambias el icono o el nombre.
+
+## Convertirla en APK (opcional, otra vía)
 
 Si quieres un archivo .apk o publicarla en Google Play: entra en https://www.pwabuilder.com, pega la URL de tu app y elige *Android*. Genera el paquete a partir de esta misma web.
 

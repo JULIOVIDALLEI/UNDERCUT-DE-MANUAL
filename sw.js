@@ -1,5 +1,5 @@
 // UND service worker — funciona sin conexión con los últimos datos descargados
-const V = 'und-v12';
+const V = 'und-v14';
 const SHELL = ['./', './index.html', './config.js', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', (e) => {
@@ -30,6 +30,9 @@ self.addEventListener('fetch', (e) => {
     );
     return;
   }
+
+  // APIs de terceros (tiempo, avisos, cuentas): siempre en directo, sin guardar
+  if (url.origin !== location.origin && !/fonts\.(googleapis|gstatic)\.com|cdn\.jsdelivr\.net/.test(url.hostname)) return;
 
   // Resto (fuentes, iconos): caché primero
   e.respondWith(
