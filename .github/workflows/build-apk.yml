@@ -1,0 +1,53 @@
+name: Crear instalador APK
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Clave de firma
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          KS_PASS_SECRET: ${{ secrets.ANDROID_KEYSTORE_PASS }}
+        run: |
+          if [ -n "$KS_B64" ]; then
+            echo "$KS_B64" | base64 -d > android/app/und.jks
+            echo "KS_PASS=$KS_PASS_SECRET" >> "$GITHUB_ENV"
+          else
+            keytool -genkeypair -keystore android/app/und.jks -alias und -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass undapp2026 -keypass undapp2026 -dname "CN=UND, O=UND, C=ES"
+            echo "KS_PASS=undapp2026" >> "$GITHUB_ENV"
+          fi
+      - name: Compilar la app
+        working-directory: android
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER,,}"
+          REPO="${GITHUB_REPOSITORY#*/}"
+          export APP_URL="https://${OWNER}.github.io/${REPO}/"
+          export VERSION_CODE="${GITHUB_RUN_NUMBER}"
+          echo "Dirección de la app: $APP_URL"
+          gradle assembleRelease --no-daemon --stacktrace
+          cp app/build/outputs/apk/release/app-release.apk ../UND.apk
+      - name: Publicar el instalador
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-${{ github.run_number }}
+          name: UND para Android (versión ${{ github.run_number }})
+          body: "Descarga **UND.apk** desde el móvil, ábrelo y pulsa Instalar."
+          files: UND.apk
+          make_latest: true
