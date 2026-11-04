@@ -1,0 +1,17 @@
+{
+  "name": "UND · Undercut de manual",
+  "short_name": "UND",
+  "description": "Calendario, horarios, resultados y clasificaciones de F1, MotoGP, IndyCar, NASCAR, WEC, IMSA, WRC y WorldSBK.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090c",
+  "theme_color": "#07090c",
+  "lang": "es",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
