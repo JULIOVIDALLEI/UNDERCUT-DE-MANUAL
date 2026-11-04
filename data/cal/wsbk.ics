@@ -1,0 +1,130 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//PitWall//Motor//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:UND · WorldSBK
+X-WR-TIMEZONE:Europe/Madrid
+REFRESH-INTERVAL;VALUE=DURATION:PT6H
+X-PUBLISHED-TTL:PT6H
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624096@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270220
+SUMMARY:SBK · Carrera 1 (hora por confirmar) — Australia
+LOCATION:Phillip Island Grand Prix Circuit · Australia
+DESCRIPTION:WorldSBK · Ronda 1
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624097@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270221
+SUMMARY:SBK · Superpole Race (hora por confirmar) — Australia
+LOCATION:Phillip Island Grand Prix Circuit · Australia
+DESCRIPTION:WorldSBK · Ronda 1
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624098@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270221
+SUMMARY:SBK · Carrera 2 (hora por confirmar) — Australia
+LOCATION:Phillip Island Grand Prix Circuit · Australia
+DESCRIPTION:WorldSBK · Ronda 1
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624099@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270320
+SUMMARY:SBK · Carrera 1 (hora por confirmar) — Portugal Portimao
+LOCATION:Algarve International Circuit · Portugal
+DESCRIPTION:WorldSBK · Ronda 2
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624100@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270321
+SUMMARY:SBK · Superpole Race (hora por confirmar) — Portugal Portimao
+LOCATION:Algarve International Circuit · Portugal
+DESCRIPTION:WorldSBK · Ronda 2
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624101@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270321
+SUMMARY:SBK · Carrera 2 (hora por confirmar) — Portugal Portimao
+LOCATION:Algarve International Circuit · Portugal
+DESCRIPTION:WorldSBK · Ronda 2
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624136@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270403
+SUMMARY:SBK · Carrera 1 (hora por confirmar) — Spain Valencia
+LOCATION:Circuit Ricardo Tormo · Spain
+DESCRIPTION:WorldSBK · Ronda 3
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624137@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270404
+SUMMARY:SBK · Superpole Race (hora por confirmar) — Spain Valencia
+LOCATION:Circuit Ricardo Tormo · Spain
+DESCRIPTION:WorldSBK · Ronda 3
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624138@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270404
+SUMMARY:SBK · Carrera 2 (hora por confirmar) — Spain Valencia
+LOCATION:Circuit Ricardo Tormo · Spain
+DESCRIPTION:WorldSBK · Ronda 3
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624139@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270417
+SUMMARY:SBK · Carrera 1 (hora por confirmar) — Pirelli Dutch Round
+LOCATION:TT Circuit Assen · The Netherlands
+DESCRIPTION:WorldSBK · Ronda 4
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624140@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270418
+SUMMARY:SBK · pole Race (hora por confirmar) — Pirelli Dutch Round
+LOCATION:TT Circuit Assen · The Netherlands
+DESCRIPTION:WorldSBK · Ronda 4
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624141@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270418
+SUMMARY:SBK · Carrera 2 (hora por confirmar) — Pirelli Dutch Round
+LOCATION:TT Circuit Assen · The Netherlands
+DESCRIPTION:WorldSBK · Ronda 4
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624142@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270522
+SUMMARY:SBK · Carrera 1 (hora por confirmar) — Aragon Round
+LOCATION:MotorLand Aragón · Spain
+DESCRIPTION:WorldSBK · Ronda 5
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624143@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270523
+SUMMARY:SBK · Superpole Race (hora por confirmar) — Aragon Round
+LOCATION:MotorLand Aragón · Spain
+DESCRIPTION:WorldSBK · Ronda 5
+END:VEVENT
+BEGIN:VEVENT
+UID:wsbk-tsdb-2624144@pitwall
+DTSTAMP:20261104T122447Z
+DTSTART;VALUE=DATE:20270523
+SUMMARY:SBK · Carrera 2 (hora por confirmar) — Aragon Round
+LOCATION:MotorLand Aragón · Spain
+DESCRIPTION:WorldSBK · Ronda 5
+END:VEVENT
+END:VCALENDAR
