@@ -7,6 +7,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>UND · Undercut de manual</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" defer></script>
 <link rel="icon" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,11 +218,67 @@ nav button.on{color:#fff;background:linear-gradient(180deg,color-mix(in srgb,var
 .lights.out i{background:#2a0d10;box-shadow:inset 0 2px 6px #000;transition:.08s}
 #splash.off{opacity:0;visibility:hidden}
 @keyframes pop{from{transform:scale(.6);opacity:0}}
+.tv{font-size:11.5px;color:var(--mut);margin-top:3px;white-space:normal;line-height:1.3}
+.tv .free{font:800 9.5px var(--ui);letter-spacing:.6px;color:#04120a;background:#3ddc84;padding:1px 5px;border-radius:4px;margin-right:2px}
+.tv .fr{color:#7ee2a8;font-weight:600}
+.hero .tv{color:#ffffffc8;font-size:12.5px;margin-top:6px;position:relative;z-index:1}
+.wx{font-size:11.5px;color:#a9c7ee;margin-top:3px;line-height:1.3}
+.wx.rain{color:#69b7ff;font-weight:600}
+.hero .wx{color:#ffffffd8;font-size:12.5px;margin-top:8px;position:relative;z-index:1}
+.seg.cls button.on{background:color-mix(in srgb,var(--c) 30%,var(--panel2));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--c) 60%,transparent);color:#fff}
+.wk{flex:none;width:80%;max-width:330px;scroll-snap-align:start;text-align:left;border-radius:20px;padding:14px 16px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 42%,#000),var(--panel) 80%);border:1px solid color-mix(in srgb,var(--c) 55%,transparent)}
+.wk b{display:block;font:800 italic 22px/1.05 var(--cond);text-transform:uppercase;margin:8px 0 4px}
+.wk .go{position:absolute;right:12px;bottom:12px;font:800 11px var(--ui);letter-spacing:1px;text-transform:uppercase;background:#0007;padding:5px 9px;border-radius:8px}
+.back{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;border-radius:11px;background:var(--panel);border:1px solid var(--line);font-weight:600;font-size:13px;margin-top:8px}
+.fs{display:flex;gap:12px;padding:14px;border-top:1px solid var(--line);align-items:flex-start}
+.fs:first-child{border-top:0}
+.fs.past{opacity:.75}
+.fs.live{background:linear-gradient(90deg,#ff2a2a22,transparent)}
+.fs .time{padding-top:1px}
+.sbadge{display:inline-block;font:800 10px var(--ui);letter-spacing:.6px;padding:2px 6px;border-radius:5px;margin-right:6px;vertical-align:2px;background:color-mix(in srgb,var(--c) 25%,transparent);color:color-mix(in srgb,var(--c) 75%,#fff);border:1px solid color-mix(in srgb,var(--c) 50%,transparent)}
+.mini{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.mini div{display:flex;align-items:center;gap:8px;font-size:13px}
+.mini .p{width:18px;font:800 15px var(--cond);text-align:center}
+.bell{font-size:13px;margin-left:4px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.tg{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-weight:600;font-size:13px;text-align:left}
+.tg .sw{width:38px;height:22px}.tg .sw::after{width:16px;height:16px}.tg .sw.on::after{left:19px}
+.steps{background:var(--panel);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;margin:10px 0;font-size:13px;line-height:1.5}
+.steps code{background:#000;padding:2px 6px;border-radius:6px;font-size:12px;word-break:break-all}
+#auth{position:fixed;inset:0;z-index:95;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(var(--sat) + 24px) 22px calc(var(--sab) + 24px);
+  background:radial-gradient(700px 500px at 50% 25%,#3a0a0e,var(--bg) 70%),var(--bg)}
+#auth.off{display:none}
+#auth .box{width:100%;max-width:380px}
+#auth .wm svg{display:block;width:210px;height:auto;margin:0 auto 6px;filter:drop-shadow(0 12px 28px #ff2a2a55)}
+#auth .sl{display:block;text-align:center;font:800 italic 14px var(--cond);letter-spacing:4px;text-transform:uppercase;color:#ff4d40;margin-bottom:26px}
+#auth h3{font:800 italic 26px var(--cond);text-transform:uppercase;margin:0 0 4px}
+#auth p{color:var(--mut);font-size:13.5px;margin:0 0 16px;line-height:1.45}
+#auth label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:12px 0 6px;letter-spacing:.3px}
+#auth input{width:100%;height:50px;border-radius:14px;border:1px solid var(--line2);background:var(--panel);color:var(--txt);font:500 16px var(--ui);padding:0 14px;outline:none}
+#auth input:focus{border-color:#ff2a2a;box-shadow:0 0 0 3px #ff2a2a33}
+#auth .pri{width:100%;height:52px;border-radius:14px;margin-top:18px;background:linear-gradient(135deg,#ff4d3d,#c3001b);color:#fff;font:800 italic 19px var(--cond);letter-spacing:1px;text-transform:uppercase;box-shadow:0 10px 26px -10px #ff2a2a}
+#auth .pri:disabled{opacity:.6}
+#auth .lnk{display:block;margin:16px auto 0;color:#ff7a6a;font-weight:600;font-size:13.5px}
+#auth .err{color:#ff8a80;font-size:13px;margin-top:10px;min-height:18px}
+#auth .ok{color:#7ee2a8}
+.sbadge.mob{display:none}
+@media (max-width:400px){
+  .wxt{display:none}
+  .row .badge.rb{display:none}
+  .sbadge.mob{display:inline-block;margin:0 5px 0 0;vertical-align:1px}
+  .time{width:46px;font-size:19px}
+  .row{gap:10px;padding:11px 12px}
+  .add{width:32px;height:32px}
+  .lock .wm svg{height:36px}
+  .slogan{font-size:10.5px}
+}
 .fade{animation:fade .35s ease}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}}
 </style>
 </head>
 <body>
+<div id="auth" class="off"></div>
 <div id="splash"><div class="lights"><i></i><i></i><i></i><i></i><i></i></div><span class="wm"><svg viewBox="-27 -3 104 44" aria-label="UND"><g transform="skewX(-14)">
   <g fill="#ff2a2a"><rect x="-22" y="4" width="16" height="4" rx="1"/><rect x="-17" y="13" width="11" height="4" rx="1"/><rect x="-12" y="22" width="6" height="4" rx="1"/></g>
   <g fill="#fff"><path fill-rule="evenodd" d="M0 0H7V21L9 23H13L15 21V0H22V24L16 30H6L0 24Z M26 30V0H33L41 16V0H48V30H41L33 14V30Z M52 0H68L74 6V24L68 30H52Z M59 7H65L67 9V21L65 23H59Z"/></g>
@@ -264,7 +322,12 @@ const SERIES = [
   { key:'imsa',    name:'IMSA',       short:'IMSA',    color:'#a78bfa' },
   { key:'wrc',     name:'WRC',        short:'WRC',     color:'#22c55e' },
 ];
-const S = Object.fromEntries(SERIES.map(s => [s.key, s]));
+const SUBS = [
+  { key:'moto2', name:'Moto2', short:'Moto2', color:'#ffb020', parent:'motogp' },
+  { key:'moto3', name:'Moto3', short:'Moto3', color:'#ff5a8a', parent:'motogp' },
+];
+const S = Object.fromEntries([...SERIES, ...SUBS].map(s => [s.key, s]));
+const CLASSES = ['motogp','moto2','moto3'];
 const FLAGS = {Australia:'🇦🇺',Austria:'🇦🇹',Azerbaijan:'🇦🇿',Bahrain:'🇧🇭',Belgium:'🇧🇪',Brazil:'🇧🇷',Canada:'🇨🇦',China:'🇨🇳',Croatia:'🇭🇷',Czechia:'🇨🇿','Czech Republic':'🇨🇿',Estonia:'🇪🇪',Finland:'🇫🇮',France:'🇫🇷',Germany:'🇩🇪','Great Britain':'🇬🇧',UK:'🇬🇧','United Kingdom':'🇬🇧',England:'🇬🇧',Greece:'🇬🇷',Hungary:'🇭🇺',India:'🇮🇳',Indonesia:'🇮🇩',Italy:'🇮🇹',Japan:'🇯🇵',Kenya:'🇰🇪',Malaysia:'🇲🇾',Mexico:'🇲🇽',Monaco:'🇲🇨',Netherlands:'🇳🇱',Portugal:'🇵🇹',Qatar:'🇶🇦',Poland:'🇵🇱','Saudi Arabia':'🇸🇦',Singapore:'🇸🇬',Spain:'🇪🇸',Sweden:'🇸🇪',Thailand:'🇹🇭',Turkey:'🇹🇷',UAE:'🇦🇪','United Arab Emirates':'🇦🇪',USA:'🇺🇸','United States':'🇺🇸',Argentina:'🇦🇷',Chile:'🇨🇱',Paraguay:'🇵🇾',Latvia:'🇱🇻','South Africa':'🇿🇦',Morocco:'🇲🇦','New Zealand':'🇳🇿',Uruguay:'🇺🇾',Kazakhstan:'🇰🇿',Ireland:'🇮🇪',Lithuania:'🇱🇹','San Marino':'🇸🇲',Switzerland:'🇨🇭'};
 const flag = (ev) => (ev.iso && ev.iso.length === 2 ? String.fromCodePoint(...[...ev.iso.toUpperCase()].map(c => 127397 + c.charCodeAt(0))) : FLAGS[ev.country] || '🏁');
 
@@ -273,8 +336,9 @@ const LS = {
   set(k, v){ try{ localStorage.setItem('pw_'+k, JSON.stringify(v)); }catch{} },
 };
 const st = {
-  data: null, view: LS.get('view','agenda'), sel: LS.get('sel','f1'), favs: LS.get('favs', SERIES.map(s=>s.key)),
-  stTab: 'drivers', open: null, calSeason: {}, faces: LS.get('faces', {}), news: LS.get('news', null), newsEn: LS.get('newsEn', true), resEv: {}, resSe: {}, loading: false, offline: false,
+  data: null, view: (v => v === 'finde' ? 'agenda' : v)(LS.get('view','agenda')), sel: LS.get('sel','f1'), favs: LS.get('favs', SERIES.map(s=>s.key)),
+  stTab: 'drivers', open: null, cls: LS.get('cls','motogp'), finde: null, findeCls: 'all', wx: LS.get('wx', {}), meta: LS.get('meta', null),
+  al: LS.get('alerts', { on:false, series: Object.fromEntries([...SERIES, ...SUBS].map(s => [s.key, true])), tipos: { clasif:true, sprint:true, carrera:true, libres:false }, t:0 }), calSeason: {}, tv: LS.get('tv', null), status: null, faces: {}, news: LS.get('news', null), newsEn: LS.get('newsEn', true), resEv: {}, resSe: {}, loading: false, offline: false,
 };
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -300,8 +364,17 @@ const tms = (s) => +new Date(s.start);
 const endms = (s) => tms(s) + (s.dur || 120) * 60000;
 const isLive = (s, now = Date.now()) => tms(s) <= now && now < endms(s);
 
+function sType(name, main){
+  const n = String(name).toLowerCase();
+  if (/superpole race|sprint/.test(n)) return 'sprint';
+  if (/clasif|qualif|hyperpole|superpole|shootout/.test(n)) return 'clasif';
+  if (/libre|práctica|practica|practice|warm|shakedown/.test(n)) return 'libres';
+  if (main || /carrera|race|power stage|tramos/.test(n)) return 'carrera';
+  return 'libres';
+}
 function sessions(keys){
   const out = [];
+  for (const sk of ['moto2','moto3']) if (keys.includes('motogp')) for (const ev of sd(sk)?.events || []) for (const se of ev.sessions || []) if (se.start && ['clasif','carrera'].includes(sType(se.name, se.main))) out.push({ k: sk, ev, se });
   for (const k of keys) for (const ev of [...(sd(k)?.events || []), ...(sd(k)?.next?.events || [])]) for (const se of ev.sessions || []) if (se.start) out.push({ k, ev, se });
   return out.sort((a,b) => tms(a.se) - tms(b.se));
 }
@@ -334,10 +407,119 @@ function chgBadge(se){
 const normName = (n) => String(n || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z ]+/g, ' ').replace(/\s+/g, ' ').trim();
 const initials = (n) => { const p = String(n||'').replace(/\b(jr|sr|ii|iii)\.?$/i,'').trim().split(/\s+/); return ((p[0]||'')[0] + (p.length > 1 ? p[p.length-1][0] : '')).toUpperCase(); };
 function face(name, size = 36, ring = ''){
-  const u = st.faces?.[normName(name)]?.u;
-  return `<span class="av" style="--z:${size}px${ring?`;--ring:${ring}`:''}">${u ? `<img src="${esc(u)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">` : ''}<i>${esc(initials(name))}</i></span>`;
+  return '';   // sin fotos ni iniciales de pilotos
 }
 const MEDAL = ['', 'var(--gold)', 'var(--silver)', 'var(--bronze)'];
+function tvFor(k, ev, se){
+  const c = st.tv?.series?.[S[k]?.parent || k]; if (!c) return null;
+  let canales = c.base || [], gratis = [];
+  const year = new Date(ev.start || se.start).getFullYear();
+  const hay = `${ev.name} ${ev.circuit || ''} ${ev.location || ''}`;
+  for (const r of c.reglas || []){
+    try{
+      if (r.temporada && r.temporada !== year) continue;
+      if (r.pais && ev.country !== r.pais && !(ev.location || '').includes(r.pais)) continue;
+      if (r.evento && !new RegExp(r.evento, 'i').test(hay)) continue;
+      if (r.sesion && !new RegExp(r.sesion, 'i').test(se.name)) continue;
+    }catch{ continue; }
+    if (r.canales) canales = r.canales;
+    if (r.gratis) gratis = [...gratis, ...r.gratis];
+  }
+  return { canales, gratis };
+}
+function tvLine(k, ev, se){
+  const t = tvFor(k, ev, se); if (!t || (!t.canales.length && !t.gratis.length)) return '';
+  return `<div class="tv">📺 ${t.gratis.length ? `<span class="free">GRATIS</span><span class="fr">${esc(t.gratis.join(' · '))}</span> · ` : ''}${esc(t.canales.join(' · '))}</div>`;
+}
+/* ---------- Tiempo (Open-Meteo) ---------- */
+const wxKey = (ev) => ev && ev.lat != null ? `${(+ev.lat).toFixed(2)},${(+ev.lon).toFixed(2)}` : null;
+let wxBusy = false;
+async function loadWeather(){
+  if (window.DEMO_DATA || wxBusy || !st.data) return;
+  wxBusy = true;
+  const now = Date.now(), locs = new Map();
+  for (const k of Object.keys(st.data.series || {})) for (const ev of [...(sd(k)?.events || []), ...(sd(k)?.next?.events || [])]){
+    const key = wxKey(ev); if (!key || locs.has(key)) continue;
+    if ((ev.sessions || []).some(se => endms(se) > now - 6*3600e3 && tms(se) < now + 15*864e5)) locs.set(key, ev);
+  }
+  let changed = false;
+  for (const [key, ev] of locs){
+    const c = st.wx[key]; if (c && now - c.t < 45*60e3) continue;
+    try{
+      const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${ev.lat}&longitude=${ev.lon}&hourly=temperature_2m,precipitation_probability,weather_code,wind_speed_10m&timezone=UTC&forecast_days=16`);
+      const j = await r.json();
+      if (j?.hourly?.time){ st.wx[key] = { t: now, h: j.hourly }; changed = true; }
+    }catch{}
+  }
+  for (const k of Object.keys(st.wx)) if (now - st.wx[k].t > 2*864e5) { delete st.wx[k]; changed = true; }
+  wxBusy = false;
+  if (changed){ LS.set('wx', st.wx); render(); }
+}
+function wxAt(ev, ms){
+  const c = st.wx[wxKey(ev)]; if (!c) return null;
+  const d = new Date(ms); d.setUTCMinutes(0, 0, 0);
+  const i = c.h.time.indexOf(d.toISOString().slice(0, 13) + ':00'); if (i < 0) return null;
+  return { temp: c.h.temperature_2m[i], pp: c.h.precipitation_probability?.[i], code: c.h.weather_code[i], wind: c.h.wind_speed_10m?.[i] };
+}
+const WXI = (c) => c === 0 ? ['☀️','Despejado'] : c <= 2 ? ['🌤️','Poco nuboso'] : c === 3 ? ['☁️','Nublado'] : c <= 48 ? ['🌫️','Niebla'] : c <= 57 ? ['🌦️','Llovizna'] : c <= 67 ? ['🌧️','Lluvia'] : c <= 77 ? ['🌨️','Nieve'] : c <= 82 ? ['🌧️','Chubascos'] : c <= 86 ? ['🌨️','Nieve'] : ['⛈️','Tormenta'];
+function wxLine(ev, se, big){
+  if (endms(se) < Date.now()) return '';
+  const w = wxAt(ev, tms(se)); if (!w || w.temp == null) return '';
+  const [ic, tx] = WXI(w.code);
+  return `<div class="wx ${w.pp >= 50 ? 'rain' : ''}">${ic} ${Math.round(w.temp)}°<span class="wxt"> · ${tx}</span>${w.pp != null ? ` · 💧 ${w.pp}%` : ''}${big && w.wind != null ? ` · 💨 ${Math.round(w.wind)} km/h` : ''}</div>`;
+}
+
+/* ---------- Avisos (ntfy) ---------- */
+const baseTopic = () => st.meta?.topic || ('und-' + (location.hostname.split('.')[0] + '-' + (location.pathname.split('/')[1] || '')).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 56));
+if (!st.al.dev){ st.al.dev = Array.from(crypto.getRandomValues(new Uint8Array(6)), b => 'abcdefghijkmnpqrstuvwxyz23456789'[b % 32]).join(''); LS.set('alerts', st.al); }
+const topic = () => (baseTopic().slice(0, 50) + '-' + st.al.dev);   // tema propio de este móvil
+const wantsAlert = (k, se) => st.al.on && st.al.series?.[k] && st.al.tipos?.[sType(se.name, se.main)];
+let alT;
+function saveAlerts(){
+  st.al.t = Date.now(); st.al.tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid';
+  st.al.url = location.origin + location.pathname;
+  LS.set('alerts', st.al);
+  clearTimeout(alT); alT = setTimeout(publishAlerts, 1200);
+}
+async function publishAlerts(silent){
+  if (window.DEMO_DATA) { if (!silent) toast('En la vista previa no se guardan los avisos'); return; }
+  try{
+    const r = await fetch(`https://ntfy.sh/${baseTopic()}-cfg`, { method:'POST', body: JSON.stringify({ ...st.al, topic: topic() }) });
+    if (!r.ok) throw 0;
+    st.al.pub = Date.now(); LS.set('alerts', st.al);
+    if (!silent) toast('Avisos guardados ✓ · se aplican en unos 5 min');
+  }catch{ toast('No se pudo guardar: revisa la conexión'); }
+}
+async function testAlert(){
+  try{
+    const r = await fetch(`https://ntfy.sh/${topic()}?title=${encodeURIComponent('✅ UND · Avisos funcionando')}&tags=checkered_flag`, { method:'POST', body: 'Así te llegarán los avisos 15 minutos antes de cada sesión.' });
+    toast(r.ok ? 'Aviso de prueba enviado' : 'No se pudo enviar');
+  }catch{ toast('No se pudo enviar: revisa la conexión'); }
+}
+
+/* ---------- MotoGP · Moto2 · Moto3 ---------- */
+const ck = () => st.sel === 'motogp' ? (st.cls || 'motogp') : st.sel;
+const clsSeg = () => st.sel !== 'motogp' ? '' : `<div class="seg cls">${CLASSES.map(c => `<button class="${ck()===c?'on':''}" data-cls="${c}" style="--c:${S[c].color}">${S[c].short}</button>`).join('')}</div>`;
+
+/* ---------- Fin de semana de carrera ---------- */
+function findEv(k, id){ const s = sd(k); return [...(s?.events || []), ...(s?.next?.events || [])].find(e => e.id === id); }
+function weekendEvents(){
+  const now = Date.now(), out = [];
+  for (const k of (st.favs.length ? st.favs : SERIES.map(s => s.key))) for (const ev of [...(sd(k)?.events || []), ...(sd(k)?.next?.events || [])]){
+    if (!ev.sessions?.length) continue;
+    const s0 = tms(ev.sessions[0]), e1 = Math.max(...ev.sessions.map(endms));
+    if (s0 < now + 4*864e5 && e1 > now - 12*3600e3) out.push({ k, ev });
+  }
+  return out.sort((a, b) => tms(a.ev.sessions[0]) - tms(b.ev.sessions[0]));
+}
+function findeItems(k, ev){
+  let items = ev.sessions.map(se => ({ k, ev, se }));
+  if (k === 'motogp') for (const sk of ['moto2','moto3']){
+    const e2 = (sd(sk)?.events || []).find(x => x.uid && x.uid === ev.uid);
+    if (e2) items.push(...e2.sessions.map(se => ({ k: sk, ev: e2, se })));
+  }
+  return items.sort((a, b) => tms(a.se) - tms(b.se));
+}
 /* ---------- Iconos ---------- */
 const IC = {
   agenda:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
@@ -356,6 +538,7 @@ function renderNav(){
   $('nav').innerHTML = VIEWS.map(([k,l]) => `<button data-view="${k}" class="${st.view===k?'on':''}">${IC[k]}<span>${l}</span></button>`).join('');
 }
 function renderChips(){
+  $('chips').style.display = st.view === 'finde' ? 'none' : '';
   const multi = st.view === 'agenda' || st.view === 'noticias';
   $('chips').innerHTML = SERIES.map(s => {
     const on = multi ? st.favs.includes(s.key) : st.sel === s.key;
@@ -364,18 +547,21 @@ function renderChips(){
 }
 function renderHeader(){
   const d = st.data, bad = d && Object.values(d.series||{}).some(x => x.status !== 'ok');
-  $('upd').innerHTML = d ? `<span class="dot ${st.offline||bad?'warn':''}"></span>${st.offline ? 'Sin conexión · ' : ''}Actualizado ${ago(d.updated)}` : (st.loading ? 'Cargando datos…' : 'Sin datos todavía');
+  const chk = st.status?.checked && (!d?.updated || st.status.checked > d.updated) ? st.status.checked : d?.updated;
+  $('upd').innerHTML = d ? `<span class="dot ${st.offline||bad?'warn':''}"></span>${st.offline ? 'Sin conexión · ' : ''}Actualizado ${ago(chk)}` : (st.loading ? 'Cargando datos…' : 'Sin datos todavía');
+  if (typeof isOwner === 'function' && isOwner(session)) $('upd').innerHTML += ' · <span style="color:#f5c542;font-weight:700">👑 Propietario</span>';
   $('refresh').classList.toggle('spin', st.loading);
 }
 
 function render(){
   ICS_INDEX = [];
-  setAccent(st.view === 'agenda' || st.view === 'noticias' ? 'f1' : st.sel);
+  setAccent(st.view === 'agenda' || st.view === 'noticias' ? 'f1' : st.view === 'finde' ? (st.finde?.k || 'f1') : ck());
   renderNav(); renderChips(); renderHeader();
   const m = $('main');
   if (!st.data){ m.innerHTML = `<div class="empty"><b>${st.loading?'Cargando…':'Sin datos'}</b>${st.loading?'Descargando calendarios y resultados':'Comprueba la conexión y pulsa actualizar.'}</div>`; return; }
   m.innerHTML = (window.DEMO_DATA ? `<div class="banner">Vista previa con <b>datos de ejemplo</b> (nombres inventados). Instalada desde tu web, la app muestra los datos reales.</div>` : '') +
-    ({ agenda: vAgenda, calendario: vCal, noticias: vNews, resultados: vRes, clasificacion: vStand })[st.view]();
+    (['calendario','resultados','clasificacion'].includes(st.view) ? clsSeg() : '') +
+    ({ agenda: vAgenda, calendario: vCal, noticias: vNews, resultados: vRes, clasificacion: vStand, finde: vFinde })[st.view]();
   m.firstElementChild?.classList.add('fade');
   m.querySelector('.pill.on')?.scrollIntoView({ inline:'center', block:'nearest' });
   tick();
@@ -385,15 +571,27 @@ function vAgenda(){
   const keys = st.favs.length ? st.favs : SERIES.map(s=>s.key);
   const all = sessions(keys), now = Date.now();
   const live = all.filter(x => isLive(x.se, now));
-  const nextMain = all.find(x => x.se.main && tms(x.se) > now) || all.find(x => tms(x.se) > now);
+  const nextMain = all.find(x => x.se.main && !S[x.k].parent && tms(x.se) > now) || all.find(x => tms(x.se) > now);
   let h = '';
+  const wk = weekendEvents();
+  if (wk.length){
+    h += `<h2>🏁 Fin de semana de carrera</h2><div class="hscroll">` + wk.map(({ k, ev }) => {
+      const items = findeItems(k, ev), nx = items.find(x => endms(x.se) > now), lv = items.find(x => isLive(x.se, now));
+      const d0 = new Date(tms(ev.sessions[0])), d1 = new Date(Math.max(...ev.sessions.map(tms)));
+      const what = lv ? `<span class="live">Directo</span> ${esc(lv.se.name)}` : nx ? `Próxima: ${S[nx.k].parent ? S[nx.k].short + ' · ' : ''}${esc(nx.se.name)} · ${fW.format(tms(nx.se))} ${nx.se.tbc ? 'TBC' : fT.format(tms(nx.se))}` : 'Finalizado';
+      return `<button class="wk" style="--c:${S[k].color}" data-finde="${k}|${esc(ev.id)}"><span class="badge" style="--c:${S[k].color}">${S[k].short}</span>
+        <b>${flag(ev)} ${esc(ev.name)}</b><div class="t2" style="color:#ffffffb0">${fDs.format(d0)}${dayKey(d0) !== dayKey(d1) ? ' – ' + fDs.format(d1) : ''} · ${esc(ev.circuit || ev.location || '')}</div>
+        <div class="t2" style="color:#fff;margin-top:8px;white-space:normal;padding-right:70px">${what}</div><span class="go">Abrir ›</span></button>`;
+    }).join('') + `</div>`;
+  }
 
   if (nextMain){
     const { k, ev, se } = nextMain;
-    h += `<div class="hero" style="--c:${S[k].color}">
+    h += `<div class="hero" style="--c:${S[k].color}" data-finde="${k}|${esc(ev.id)}">
       <span class="tag">${S[k].short} · Próxima ${esc(se.name.toLowerCase())}</span>
       <h3>${flag(ev)} ${esc(ev.name)}</h3>
       <div class="loc">${esc(ev.circuit || ev.location)}${ev.round?` · Ronda ${ev.round}`:''}</div>
+      ${wxLine(ev, se, true)}${tvLine(k, ev, se)}
       <div class="cd" data-cd="${tms(se)}"><div><b>--</b><span>días</span></div><div><b>--</b><span>horas</span></div><div><b>--</b><span>min</span></div><div><b>--</b><span>seg</span></div></div>
       <div class="when"><span>${esc(dayLabel(tms(se)))}</span><strong>${se.tbc?'Hora por confirmar':fT.format(tms(se))}</strong></div>
     </div>`;
@@ -445,13 +643,13 @@ function row({k, ev, se}, liveRow){
   const t = tms(se);
   return `<div class="row">
     <div class="time">${se.tbc ? '<small>hora</small>TBC' : fT.format(t)}${liveRow ? '' : `<small>${fW.format(t)}</small>`}</div>
-    <div class="grow"><div class="t1">${liveRow?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}</div><div class="t2">${flag(ev)} ${esc(ev.name)}</div></div>
-    <span class="badge" style="--c:${S[k].color}">${S[k].short}</span>${liveRow?'':icsBtn(k,ev,se)}
+    <div class="grow"><div class="t1">${liveRow?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}</div><div class="t2"><span class="sbadge mob" style="--c:${S[k].color}">${S[k].short}</span>${flag(ev)} ${esc(ev.name)}</div>${tms(se) > Date.now() - 6*3600e3 ? wxLine(ev, se) + tvLine(k, ev, se) : ''}</div>
+    <span class="badge rb" style="--c:${S[k].color}">${S[k].short}${wantsAlert(k, se) && tms(se) > Date.now() ? ' 🔔' : ''}</span>${liveRow?'':icsBtn(k,ev,se)}
   </div>`;
 }
 
 function vCal(){
-  const k = st.sel, base = sd(k), c = S[k].color;
+  const k = ck(), base = sd(k), c = S[k].color;
   if (!base?.events?.length && !base?.next?.events?.length) return emptySeries(k);
   const seasons = [base.events?.length ? base.season : null, base.next?.events?.length ? base.next.season : null].filter(Boolean);
   const curDone = base.events?.length && base.events.every(e => e.done);
@@ -463,6 +661,8 @@ function vCal(){
   const all = s.events.flatMap(ev => ev.sessions.filter(se => tms(se) > now).map(se => ({k,ev,se})));
   let h = `<h2>${esc(S[k].name)} ${s.season||''}<span class="sub">${s.events.filter(e=>e.done).length}/${s.events.length} completadas</span></h2>` + toggle;
   if (all.length){ const i = ICS_INDEX.push({ all, name:`${S[k].short}_${s.season}` }) - 1; h += `<div style="margin:-2px 0 12px"><button class="btn" data-ics-all="${i}">${IC.calendario} Añadir temporada al calendario</button></div>`; }
+  const tvk = S[k].parent || k;
+  if (st.tv?.series?.[tvk]?.nota) h += `<div class="note" style="margin-top:0">📺 ${esc(st.tv.series[tvk].nota)}</div>`;
   h += s.events.map((ev, i) => {
     const open = st.open === ev.id, live = ev.sessions.some(se => isLive(se, now));
     const status = live ? '<span class="live">Directo</span>' : ev.done ? '<span class="st done">Final</span>' : i === nextIdx ? '<span class="st next">Próxima</span>' : '';
@@ -477,7 +677,7 @@ function vCal(){
       </button>
       ${open ? `<div class="sess">${ev.sessions.map(se => `<div class="row">
           <div class="time">${se.tbc?'TBC':fT.format(tms(se))}<small>${fW.format(tms(se))} ${new Date(tms(se)).getDate()}</small></div>
-          <div class="grow"><div class="t1">${isLive(se)?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}</div>${se.result?.[0]?`<div class="t2">🏆 ${esc(se.result[0].name)}</div>`:''}</div>
+          <div class="grow"><div class="t1">${isLive(se)?'<span class="live">Directo</span> ':''}${esc(se.name)}${chgBadge(se)}${wantsAlert(k, se) && tms(se) > now ? '<span class="bell">🔔</span>' : ''}</div>${se.result?.[0]?`<div class="t2">🏆 ${esc(se.result[0].name)}</div>`:(endms(se) > now ? wxLine(ev, se) + tvLine(k, ev, se) : '')}</div>
           ${se.result?.length ? `<button class="btn" style="height:34px" data-goto-res="${k}|${esc(ev.id)}|${esc(se.name)}">Ver</button>` : tms(se) > now ? icsBtn(k,ev,se) : ''}
         </div>`).join('')}</div>` : ''}
     </div>`;
@@ -486,7 +686,7 @@ function vCal(){
 }
 
 function vRes(){
-  const k = st.sel, s = sd(k);
+  const k = ck(), s = sd(k);
   const evs = (s?.events || []).filter(e => e.sessions.some(se => se.result?.length));
   if (!evs.length) return emptySeries(k, 'Aún no hay resultados publicados');
   let ev = evs.find(e => e.id === st.resEv[k]) || evs[evs.length-1];
@@ -509,7 +709,7 @@ function vRes(){
 }
 
 function vStand(){
-  const k = st.sel, s = sd(k), c = S[k].color;
+  const k = ck(), s = sd(k), c = S[k].color;
   const stn = s?.standings || {};
   const hasTeams = stn.teams?.length;
   const tab = hasTeams ? st.stTab : 'drivers';
@@ -551,6 +751,46 @@ function vNews(){
   return h;
 }
 
+function vFinde(){
+  const f = st.finde, ev = f && findEv(f.k, f.id);
+  if (!ev){ st.view = 'agenda'; return vAgenda(); }
+  const k = f.k, now = Date.now();
+  let items = findeItems(k, ev);
+  if (k === 'motogp' && st.findeCls !== 'all') items = items.filter(x => x.k === st.findeCls);
+  const nx = items.find(x => tms(x.se) > now), lv = items.filter(x => isLive(x.se, now));
+  const wNow = wxAt(ev, now);
+  const d0 = new Date(tms(ev.sessions[0])), d1 = new Date(Math.max(...ev.sessions.map(tms)));
+  let h = `<button class="back" data-back="1">‹ Volver</button>
+    <div class="hero" style="--c:${S[k].color};margin-top:10px">
+      <span class="tag">${S[k].short} · Modo fin de semana${ev.round ? ' · Ronda ' + ev.round : ''}</span>
+      <h3>${flag(ev)} ${esc(ev.name)}</h3>
+      <div class="loc">${esc(ev.circuit || '')}${ev.location ? ' · ' + esc(ev.location) : ''} · ${fDs.format(d0)}${dayKey(d0) !== dayKey(d1) ? ' – ' + fDs.format(d1) : ''}</div>
+      ${wNow && wNow.temp != null ? `<div class="wx">Ahora en el circuito: ${WXI(wNow.code)[0]} ${Math.round(wNow.temp)}° · ${WXI(wNow.code)[1]}${wNow.wind != null ? ` · 💨 ${Math.round(wNow.wind)} km/h` : ''}</div>` : ''}
+      ${lv.length ? `<div style="margin-top:16px;position:relative;z-index:1">${lv.map(x => `<div style="margin-top:6px"><span class="live">En directo</span> <b>${S[x.k].parent ? S[x.k].short + ' · ' : ''}${esc(x.se.name)}</b></div>`).join('')}</div>` : ''}
+      ${nx ? `<div class="t2" style="color:#ffffffc0;margin-top:16px;position:relative;z-index:1">Siguiente: <b style="color:#fff">${S[nx.k].parent ? S[nx.k].short + ' · ' : ''}${esc(nx.se.name)}</b></div>
+      <div class="cd" data-cd="${tms(nx.se)}" style="margin-top:8px"><div><b>--</b><span>días</span></div><div><b>--</b><span>horas</span></div><div><b>--</b><span>min</span></div><div><b>--</b><span>seg</span></div></div>` : (!lv.length ? `<div class="t2" style="color:#fff;margin-top:14px;position:relative;z-index:1">🏁 Fin de semana terminado</div>` : '')}
+    </div>`;
+  if (k === 'motogp') h += `<div class="seg cls" style="margin-top:12px">${['all', ...CLASSES].map(c => `<button class="${st.findeCls === c ? 'on' : ''}" data-fcls="${c}" style="--c:${c === 'all' ? '#ffffff' : S[c].color}">${c === 'all' ? 'Todas' : S[c].short}</button>`).join('')}</div>`;
+  let cur = null, buf = '';
+  for (const x of items){
+    const { se } = x, t = tms(se), dk = dayKey(t);
+    if (dk !== cur){ if (buf) h += buf + '</div>'; cur = dk; buf = `<div class="day">${esc(dayLabel(t))}</div><div class="card">`; }
+    const live = isLive(se, now), past = endms(se) < now;
+    const status = live ? '<span class="live">Directo</span>' : past ? (se.result?.length ? '<span class="st done">Final</span>' : '<span class="st up">Terminada</span>') : (nx && nx.se === se ? '<span class="st next" style="--c:' + S[k].color + '">Próxima</span>' : '');
+    const res = se.result?.length ? `<div class="mini">${se.result.slice(0, 3).map(r => `<div><span class="p" style="color:${MEDAL[r.pos]}">${r.pos}</span>${face(r.name, 28, MEDAL[r.pos])}<span class="grow t1" style="font-size:13px">${esc(r.name)}</span><span class="t2">${esc(r.time || '')}</span></div>`).join('')}
+        <button class="btn" style="height:32px;align-self:flex-start;margin-top:4px" data-goto-res="${x.k}|${esc(x.ev.id)}|${esc(se.name)}">Resultado completo ›</button></div>` : '';
+    buf += `<div class="fs ${past && !live ? 'past' : ''} ${live ? 'live' : ''}">
+      <div class="time">${se.tbc ? 'TBC' : fT.format(t)}<small>${fW.format(t)}</small></div>
+      <div class="grow"><div class="t1" style="white-space:normal">${S[x.k].parent ? `<span class="sbadge" style="--c:${S[x.k].color}">${S[x.k].short}</span>` : (k === 'motogp' ? `<span class="sbadge" style="--c:${S.motogp.color}">MotoGP</span>` : '')}${esc(se.name)}${wantsAlert(x.k, se) && !past ? '<span class="bell">🔔</span>' : ''} ${status}</div>
+        ${chgBadge(se)}${!past ? wxLine(x.ev, se, true) + tvLine(x.k, x.ev, se) : ''}${res}</div>
+      ${!past ? icsBtn(x.k, x.ev, se) : ''}
+    </div>`;
+  }
+  if (buf) h += buf + '</div>';
+  h += `<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap"><button class="btn" data-goto-st="${k}">🏆 Mundial ${esc(S[k].short)}</button><button class="btn" data-goto-cal="${k}">🗓️ Calendario</button></div>`;
+  return h;
+}
+
 function emptySeries(k, msg){
   const s = sd(k);
   return `<h2>${esc(S[k].name)}</h2><div class="card"><div class="empty"><b>${msg ? esc(msg) : 'Sin datos'}</b>${s?.error ? 'La fuente de datos no respondió en la última actualización. Se reintentará automáticamente.' : 'Los datos aparecerán en la próxima actualización.'}</div></div>`;
@@ -581,8 +821,27 @@ function openSheet(){
         <span class="badge" style="--c:${s.color}">${s.short}</span>
         <div class="grow"><div class="t1">${esc(s.name)}</div><div class="t2">${x ? `${ok?'✓':'⚠'} ${esc(x.source||'')}${x.fallback?' (respaldo)':''} · ${x.events?.length||0} eventos` : 'sin datos'}</div></div>
         <span class="sw ${st.favs.includes(s.key)?'on':''}"></span></button>`; }).join('')}
+    ${authReady() || window.DEMO_DATA ? `<h2>👑 Propietario</h2>
+    ${isOwner(session) ? `<div class="tog" style="--c:#f5c542"><span style="font-size:30px">👑</span><div class="grow"><div class="t1">${esc(CFG.ownerUser || '')} 👑</div><div class="t2">Has iniciado sesión como propietario</div></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn" data-auth-go="cambiar">🔑 Cambiar contraseña</button><button class="btn" data-auth-go="logout">Cerrar sesión</button></div>`
+    : `<div class="t2" style="white-space:normal">La app es libre para todos. Este acceso es solo para identificar al propietario.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn pri" data-auth-go="login">Acceder como propietario</button></div>`}` : ''}
+    <h2>🔔 Avisos 15 min antes</h2>
+    <button class="tog" style="width:100%;text-align:left;--c:#22c55e" data-al-on="1"><div class="grow"><div class="t1">Avisarme 15 minutos antes</div><div class="t2" style="white-space:normal">Te llega una notificación al móvil aunque la app esté cerrada.</div></div><span class="sw ${st.al.on?'on':''}"></span></button>
+    <div class="steps"><b>Para recibirlos (solo una vez):</b><br>
+      1. Instala <b>ntfy</b> desde <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener" style="color:#7cc4ff">Google Play</a> (gratis).<br>
+      2. Pulsa <a href="ntfy://ntfy.sh/${esc(topic())}" style="color:#7cc4ff;font-weight:700">Suscribirme en ntfy</a>. Si no se abre, en ntfy pulsa <b>+</b> y escribe el tema: <code>${esc(topic())}</code> <button class="btn" style="height:28px;padding:0 8px;font-size:12px" data-copy="${esc(topic())}">Copiar</button><br>
+      3. <button class="btn" style="height:30px;padding:0 10px;font-size:12px" data-al-test="1">Enviar aviso de prueba</button>
+    </div>
+    <div class="t2" style="margin-top:6px">Series</div>
+    <div class="grid2">${[...SERIES.flatMap(x => x.key === 'motogp' ? [x, ...SUBS] : [x])].map(x => `<button class="tg" style="--c:${x.color}" data-al-s="${x.key}"><span><span class="badge" style="--c:${x.color}">${x.short}</span></span><span class="sw ${st.al.series?.[x.key]?'on':''}"></span></button>`).join('')}</div>
+    <div class="t2" style="margin-top:12px">Sesiones</div>
+    <div class="grid2">${[['clasif','Clasificación'],['sprint','Sprint'],['carrera','Carrera'],['libres','Libres']].map(([t,l]) => `<button class="tg" style="--c:#22c55e" data-al-t="${t}"><span>${l}</span><span class="sw ${st.al.tipos?.[t]?'on':''}"></span></button>`).join('')}</div>
+    <div class="t2" style="white-space:normal;margin-top:8px">Los cambios se aplican en unos 5 minutos. Verás 🔔 junto a las sesiones que te avisarán.</div>
     <h2>Noticias</h2>
     <button class="tog" style="width:100%;text-align:left;--c:#3b82f6" id="newsEn"><div class="grow"><div class="t1">Incluir medios en inglés</div><div class="t2" style="white-space:normal">Más cobertura en IndyCar, NASCAR, IMSA y WEC</div></div><span class="sw ${st.newsEn?'on':''}"></span></button>
+    <h2>Dónde verlo</h2>
+    <div class="t2" style="white-space:normal">${esc(st.tv?.aviso || 'Debajo de cada sesión verás el canal oficial en España.')}</div>
     <h2>Calendario del móvil</h2>
     <div class="t2" style="white-space:normal;margin-bottom:6px">Suscríbete una vez y las carreras aparecen en el calendario de tu móvil. Cuando se publica un calendario nuevo o cambia un horario, se actualiza solo.</div>
     ${[{key:'todas', name:'Todas las series', color:'#ffffff', short:'TODAS'}, ...SERIES].map(s => { const url = new URL('data/cal/'+s.key+'.ics', location.href).href.replace(/^https?:/, 'webcal:');
@@ -591,7 +850,7 @@ function openSheet(){
         <a class="btn" style="height:34px" href="${esc(g)}" target="_blank" rel="noopener">Google</a>
         <button class="add" data-copy="${esc(url)}" aria-label="Copiar enlace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>`; }).join('')}
     <h2>App</h2>
-    <div class="t2" style="white-space:normal">Datos actualizados ${ago(d?.updated)}. La app se refresca sola cada 5 minutos mientras está abierta y funciona sin conexión con los últimos datos descargados.</div>
+    <div class="t2" style="white-space:normal">Datos actualizados ${ago(d?.updated)}. La app comprueba si hay datos nuevos cada minuto mientras está abierta y funciona sin conexión con los últimos datos descargados.</div>
     <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       ${deferredInstall ? '<button class="btn pri" id="install">Instalar app</button>' : ''}
       <button class="btn" id="closeSheet">Cerrar</button>
@@ -608,8 +867,18 @@ function toast(msg){
 
 /* ---------- Eventos ---------- */
 document.addEventListener('click', async e => {
-  const b = e.target.closest('button'); if (!b) return;
+  const b = e.target.closest('button,[data-finde]'); if (!b) return;
   const D = b.dataset;
+  if (D.finde){ const [k, id] = D.finde.split('|'); st.finde = { k, id }; st.findeCls = 'all'; st.view = 'finde'; try{ history.pushState({ finde: 1 }, '', '#finde'); }catch{} render(); scrollTo({ top: 0 }); return; }
+  if (D.back){ if (history.state?.finde) history.back(); else { st.view = 'agenda'; render(); } return; }
+  if (D.fcls){ st.findeCls = D.fcls; render(); return; }
+  if (D.cls){ st.cls = D.cls; LS.set('cls', st.cls); st.open = null; render(); return; }
+  if (D.gotoSt){ st.sel = S[D.gotoSt].parent || D.gotoSt; if (S[D.gotoSt].parent) st.cls = D.gotoSt; st.view = 'clasificacion'; render(); scrollTo({ top: 0 }); return; }
+  if (D.gotoCal){ st.sel = S[D.gotoCal].parent || D.gotoCal; st.view = 'calendario'; render(); scrollTo({ top: 0 }); return; }
+  if (D.alOn){ st.al.on = !st.al.on; saveAlerts(); render(); openSheet(); return; }
+  if (D.alS){ st.al.series[D.alS] = !st.al.series[D.alS]; saveAlerts(); render(); openSheet(); return; }
+  if (D.alT){ st.al.tipos[D.alT] = !st.al.tipos[D.alT]; saveAlerts(); render(); openSheet(); return; }
+  if (D.alTest){ testAlert(); return; }
   if (D.view){ st.view = D.view; LS.set('view', st.view); render(); scrollTo({top:0}); }
   else if (D.chip){
     if (st.view === 'agenda' || st.view === 'noticias'){ st.favs = st.favs.includes(D.chip) ? st.favs.filter(x => x !== D.chip) : [...st.favs, D.chip]; LS.set('favs', st.favs); }
@@ -619,11 +888,11 @@ document.addEventListener('click', async e => {
   else if (D.open){ st.open = st.open === D.open ? null : D.open; render(); }
   else if (D.ics){ const x = ICS_INDEX[+D.ics]; downloadIcs(`${S[x.k].short}_${x.se.name}_${x.ev.name}`, [x]); }
   else if (D.icsAll){ const x = ICS_INDEX[+D.icsAll]; downloadIcs(x.name, x.all); }
-  else if (D.gotoRes){ const [k, id, sn] = D.gotoRes.split('|'); st.sel = k; st.resEv[k] = id; if (sn) st.resSe[k] = sn; else delete st.resSe[k]; st.view = 'resultados'; LS.set('sel',k); LS.set('view','resultados'); render(); scrollTo({top:0}); }
-  else if (D.resEv){ st.resEv[st.sel] = D.resEv; delete st.resSe[st.sel]; render(); }
-  else if (D.resSe){ st.resSe[st.sel] = D.resSe; render(); }
+  else if (D.gotoRes){ const [k, id, sn] = D.gotoRes.split('|'); st.sel = S[k].parent || k; if (S[k].parent || k === 'motogp') { st.cls = k; LS.set('cls', k); } st.resEv[k] = id; if (sn) st.resSe[k] = sn; else delete st.resSe[k]; st.view = 'resultados'; LS.set('sel',st.sel); LS.set('view','resultados'); render(); scrollTo({top:0}); }
+  else if (D.resEv){ st.resEv[ck()] = D.resEv; delete st.resSe[ck()]; render(); }
+  else if (D.resSe){ st.resSe[ck()] = D.resSe; render(); }
   else if (D.st){ st.stTab = D.st; render(); }
-  else if (D.calSeason){ st.calSeason[st.sel] = +D.calSeason; st.open = null; render(); }
+  else if (D.calSeason){ st.calSeason[ck()] = +D.calSeason; st.open = null; render(); }
   else if (D.goCal){ st.sel = D.goCal; st.calSeason[D.goCal] = +D.season; st.view = 'calendario'; LS.set('sel', st.sel); LS.set('view','calendario'); render(); scrollTo({top:0}); }
   else if (D.copy){ try{ await navigator.clipboard.writeText(D.copy); toast('Enlace copiado'); }catch{ toast(D.copy); } }
   else if (D.fav){ st.favs = st.favs.includes(D.fav) ? st.favs.filter(x => x !== D.fav) : [...st.favs, D.fav]; LS.set('favs', st.favs); render(); openSheet(); }
@@ -634,28 +903,141 @@ document.addEventListener('click', async e => {
   else if (b.id === 'install' && deferredInstall){ deferredInstall.prompt(); deferredInstall = null; closeSheet(); }
 });
 $('scrim').addEventListener('click', closeSheet);
+window.addEventListener('popstate', () => { if (st.view === 'finde'){ st.view = 'agenda'; render(); } });
 
 /* ---------- Datos ---------- */
 async function load(){
   if (window.DEMO_DATA){ st.data = window.DEMO_DATA; st.news = window.DEMO_NEWS || null; render(); return; }
   if (st.loading) return;
-  fetch('data/faces.json?t=' + Date.now(), { cache:'no-store' }).then(r => r.ok ? r.json() : null).then(f => { if (f?.faces){ st.faces = f.faces; LS.set('faces', f.faces); if (st.view !== 'calendario' && st.view !== 'noticias') render(); } }).catch(() => {});
-  fetch('data/news.json?t=' + Date.now(), { cache:'no-store' }).then(r => r.ok ? r.json() : null).then(n => { if (n?.items){ st.news = n; LS.set('news', n); if (st.view === 'noticias') render(); } }).catch(() => {});
+  fetch('data/meta.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(m => { if (m?.topic && m.topic !== st.meta?.topic){ st.meta = m; LS.set('meta', m); } }).catch(() => {});
+  if (st.al.on && Date.now() - (st.al.pub || 0) > 10*3600e3) publishAlerts(true);
+  fetch('data/status.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(x => { if (x?.checked){ st.status = x; renderHeader(); } }).catch(() => {});
+  fetch('data/tv.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(t => { if (t?.series){ const ch = JSON.stringify(t) !== JSON.stringify(st.tv); st.tv = t; LS.set('tv', t); if (ch) render(); } }).catch(() => {});
+  fetch('data/news.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).then(n => { if (n?.items && n.updated !== st.news?.updated){ st.news = n; LS.set('news', n); if (st.view === 'noticias' || st.view === 'agenda') render(); } }).catch(() => {});
   st.loading = true; renderHeader();
   try{
-    const r = await fetch('data/data.json?t=' + Date.now(), { cache:'no-store' });
+    const r = await fetch('data/data.json', { cache:'no-cache' });
     if (!r.ok) throw new Error(r.status);
     const d = await r.json();
     if (!d.updated && !Object.keys(d.series||{}).length) throw new Error('vacío');
-    st.data = d; st.offline = false; LS.set('cache', d);
+    const changed = d.updated !== st.data?.updated;
+    st.data = d; st.offline = false;
+    if (changed){ LS.set('cache', d); st.loading = false; render(); loadWeather(); return; }
   }catch{
     st.offline = !navigator.onLine;
-    if (!st.data) st.data = LS.get('cache', null);
+    if (!st.data){ st.data = LS.get('cache', null); st.loading = false; render(); return; }
   }
-  st.loading = false; render();
+  st.loading = false; renderHeader(); loadWeather();
 }
 st.data = window.DEMO_DATA || LS.get('cache', null);
 if (window.DEMO_NEWS) st.news = window.DEMO_NEWS;
+if (window.DEMO_TV) st.tv = window.DEMO_TV;
+/* ---------- Cuenta de propietario (Supabase Auth) ---------- */
+const CFG = window.UND_CONFIG || {};
+const APP_URL = location.origin + location.pathname;
+let sb = null, session = null;
+const maskMail = (m) => String(m || '').replace(/^(.)(.*)(@.*)$/, (_, a, b, c) => a + '•'.repeat(Math.min(6, b.length)) + c);
+const isOwner = (s) => !!s?.user?.email && s.user.email.toLowerCase() === String(CFG.ownerEmail || '').toLowerCase();
+const authReady = () => !!(CFG.supabaseUrl && CFG.supabaseKey);
+const WM = `<svg viewBox="-27 -3 104 44" aria-label="UND"><g transform="skewX(-14)">
+  <g fill="#ff2a2a"><rect x="-22" y="4" width="16" height="4" rx="1"/><rect x="-17" y="13" width="11" height="4" rx="1"/><rect x="-12" y="22" width="6" height="4" rx="1"/></g>
+  <g fill="#fff"><path fill-rule="evenodd" d="M0 0H7V21L9 23H13L15 21V0H22V24L16 30H6L0 24Z M26 30V0H33L41 16V0H48V30H41L33 14V30Z M52 0H68L74 6V24L68 30H52Z M59 7H65L67 9V21L65 23H59Z"/></g>
+  <rect x="0" y="34" width="56" height="3.2" fill="#ff2a2a"/>
+  <g fill="#fff"><rect x="58" y="34" width="3.2" height="1.6"/><rect x="61.2" y="35.6" width="3.2" height="1.6"/><rect x="64.4" y="34" width="3.2" height="1.6"/><rect x="67.6" y="35.6" width="3.2" height="1.6"/><rect x="70.8" y="34" width="3.2" height="1.6"/></g>
+  <g fill="#ffffff55"><rect x="61.2" y="34" width="3.2" height="1.6"/><rect x="58" y="35.6" width="3.2" height="1.6"/><rect x="67.6" y="34" width="3.2" height="1.6"/><rect x="64.4" y="35.6" width="3.2" height="1.6"/><rect x="70.8" y="35.6" width="3.2" height="1.6"/></g>
+  </g></svg>`;
+function showAuth(mode, msg = ''){
+  const A = $('auth'); A.classList.remove('off');
+  const head = `<span class="wm">${WM}</span><span class="sl">Undercut de manual</span>`;
+  const forms = {
+    login: `<h3>Acceso propietario</h3><p>Solo para el propietario de la app. Para usar UND no hace falta cuenta.</p>
+      <form data-auth="login"><label>Usuario</label><input name="u" autocomplete="username" autocapitalize="none" required>
+      <label>Contraseña</label><input name="p" type="password" autocomplete="current-password" required>
+      <div class="err">${esc(msg)}</div><button class="pri" type="submit">Entrar</button></form>
+      <button class="lnk" data-auth-go="olvido">¿Olvidaste la contraseña?</button>
+      <button class="lnk" style="color:var(--mut);font-weight:500" data-auth-go="registro">Primera vez: registrar propietario</button>`,
+    registro: `<h3>Registrar propietario</h3><p>Crea la cuenta de propietario. Después te llegará un correo a <b>${esc(maskMail(CFG.ownerEmail))}</b> para confirmarla.</p>
+      <form data-auth="registro"><label>Usuario</label><input name="u" autocomplete="username" autocapitalize="none" required>
+      <label>Contraseña</label><input name="p" type="password" autocomplete="new-password" minlength="8" required>
+      <label>Repite la contraseña</label><input name="p2" type="password" autocomplete="new-password" minlength="8" required>
+      <div class="err">${esc(msg)}</div><button class="pri" type="submit">Crear cuenta</button></form>
+      <button class="lnk" data-auth-go="login">‹ Ya tengo cuenta</button>`,
+    olvido: `<h3>Recuperar contraseña</h3><p>Te enviaremos un enlace a <b>${esc(maskMail(CFG.ownerEmail))}</b>. Ábrelo desde este móvil para elegir una contraseña nueva.</p>
+      <form data-auth="olvido"><div class="err">${esc(msg)}</div><button class="pri" type="submit">Enviar enlace</button></form>
+      <button class="lnk" data-auth-go="login">‹ Volver</button>`,
+    nueva: `<h3>Nueva contraseña</h3><p>Escribe la contraseña nueva para la cuenta <b>${esc(CFG.ownerUser || '')}</b>.</p>
+      <form data-auth="nueva"><label>Contraseña nueva</label><input name="p" type="password" autocomplete="new-password" minlength="8" required>
+      <label>Repítela</label><input name="p2" type="password" autocomplete="new-password" minlength="8" required>
+      <div class="err">${esc(msg)}</div><button class="pri" type="submit">Guardar contraseña</button></form>
+      `,
+    aviso: `<h3>Revisa tu correo</h3><p class="ok">${esc(msg)}</p><button class="lnk" data-auth-go="login">‹ Ir a iniciar sesión</button>`,
+    sinconf: `<h3>Falta un paso</h3><p>La cuenta de propietario no está configurada todavía (archivo <b>config.js</b>).</p>`,
+  };
+  A.innerHTML = `<button class="back" data-auth-go="cerrar" style="position:absolute;top:calc(var(--sat) + 14px);right:16px">✕ Cerrar</button><div class="box">${head}${forms[mode] || forms.login}</div>`;
+  A.querySelector('input')?.focus();
+}
+function hideAuth(){ $('auth').classList.add('off'); $('auth').innerHTML = ''; }
+async function initAuth(){
+  if (window.DEMO_DATA || !authReady()) return;                 // sin configurar: la app funciona sin cuenta
+  for (let i = 0; i < 40 && !window.supabase; i++) await new Promise(r => setTimeout(r, 100));
+  if (!window.supabase) return;
+  sb = window.supabase.createClient(CFG.supabaseUrl, CFG.supabaseKey, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+  sb.auth.onAuthStateChange((ev, s) => {
+    session = s;
+    if (ev === 'PASSWORD_RECOVERY') return showAuth('nueva');
+    if (s && isOwner(s)){ LS.set('owner', true); if (ev === 'SIGNED_IN' && /access_token/.test(location.hash)){ try{ history.replaceState(null, '', APP_URL); }catch{} toast('Cuenta de propietario confirmada ✓'); } }
+    if (ev === 'SIGNED_OUT') LS.set('owner', false);
+    renderHeader();
+  });
+  const { data } = await sb.auth.getSession(); session = data.session;
+  if (session && !isOwner(session)) await sb.auth.signOut();
+  renderHeader();
+}
+document.addEventListener('submit', async e => {
+  const f = e.target.closest('form[data-auth]'); if (!f) return;
+  e.preventDefault();
+  const mode = f.dataset.auth, v = Object.fromEntries(new FormData(f)), btn = f.querySelector('button[type=submit]'), err = f.querySelector('.err');
+  const fail = (m) => { err.textContent = m; btn.disabled = false; };
+  btn.disabled = true; err.textContent = '';
+  if (!sb) return fail('Sin conexión con el servidor de cuentas.');
+  const userOk = () => String(v.u || '').trim().toLowerCase() === String(CFG.ownerUser || '').toLowerCase();
+  try{
+    if (mode === 'login'){
+      if (!userOk()) return fail('Usuario o contraseña incorrectos.');
+      const { error } = await sb.auth.signInWithPassword({ email: CFG.ownerEmail, password: v.p });
+      if (error) return fail(/confirm/i.test(error.message) ? 'Confirma primero tu cuenta desde el correo que te enviamos.' : 'Usuario o contraseña incorrectos.');
+      hideAuth(); toast('Bienvenido, ' + CFG.ownerUser);
+    } else if (mode === 'registro'){
+      if (!userOk()) return fail('Ese no es el usuario de propietario.');
+      if (v.p !== v.p2) return fail('Las contraseñas no coinciden.');
+      const { data, error } = await sb.auth.signUp({ email: CFG.ownerEmail, password: v.p, options: { emailRedirectTo: APP_URL, data: { username: CFG.ownerUser } } });
+      if (error) return fail(/already|registered|exists/i.test(error.message) ? 'La cuenta ya existe: inicia sesión.' : 'No se pudo crear: ' + error.message);
+      if (data.session && isOwner(data.session)){ hideAuth(); toast('Cuenta creada'); }
+      else showAuth('aviso', `Te hemos enviado un correo a ${maskMail(CFG.ownerEmail)}. Pulsa el enlace para confirmar la cuenta y después inicia sesión.`);
+    } else if (mode === 'olvido'){
+      const { error } = await sb.auth.resetPasswordForEmail(CFG.ownerEmail, { redirectTo: APP_URL });
+      if (error) return fail('No se pudo enviar: ' + error.message);
+      showAuth('aviso', `Te hemos enviado un enlace a ${maskMail(CFG.ownerEmail)}. Ábrelo desde este móvil para poner una contraseña nueva.`);
+    } else if (mode === 'nueva'){
+      if (v.p !== v.p2) return fail('Las contraseñas no coinciden.');
+      const { error } = await sb.auth.updateUser({ password: v.p });
+      if (error) return fail('No se pudo cambiar: ' + error.message);
+      try{ history.replaceState(null, '', APP_URL); }catch{}
+      hideAuth(); toast('Contraseña cambiada ✓');
+    }
+  }catch(x){ fail('Error de conexión. Inténtalo de nuevo.'); }
+});
+document.addEventListener('click', async e => {
+  const g = e.target.closest('[data-auth-go]'); if (!g) return;
+  const m = g.dataset.authGo;
+  if (m === 'cerrar') return hideAuth();
+  if (m === 'logout'){ closeSheet(); await sb?.auth.signOut(); toast('Sesión de propietario cerrada'); return; }
+  if (m === 'cambiar'){ closeSheet(); return showAuth('nueva'); }
+  closeSheet(); showAuth(m);
+});
+initAuth();
+
+try{ localStorage.removeItem('pw_faces'); }catch{}   // borrar fotos guardadas de versiones anteriores
 render(); load();
 { let seen = false; try{ seen = !!sessionStorage.getItem('und_seen'); sessionStorage.setItem('und_seen','1'); }catch{}
   const sp = $('splash');
@@ -666,7 +1048,7 @@ render(); load();
     setTimeout(() => sp.classList.add('off'), 250 + 5 * 220 + 700);
   }
 }
-setInterval(() => { if (document.visibilityState === 'visible') load(); }, 5*60*1000);
+setInterval(() => { if (document.visibilityState === 'visible') load(); }, 60*1000); // cada minuto
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible'){ load(); } });
 setInterval(() => { if (document.visibilityState === 'visible' && !st.loading) renderHeader(); }, 30000);
 

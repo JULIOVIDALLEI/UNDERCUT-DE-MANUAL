@@ -1,0 +1,40 @@
+{
+  "revisado": "2026-11-04",
+  "aviso": "Canales oficiales en España revisados el 4 de noviembre de 2026. Pueden cambiar: confirma en la programación del canal.",
+  "series": {
+    "f1": {
+      "base": ["DAZN F1", "Movistar Plus+"],
+      "nota": "F1 TV Pro no está disponible en España. DAZN tiene los derechos hasta 2030.",
+      "reglas": [
+        { "temporada": 2026, "pais": "Spain", "sesion": "Libres", "gratis": ["BeMad", "Mediaset Infinity"] },
+        { "temporada": 2026, "pais": "Spain", "sesion": "Clasif|Carrera|Sprint", "gratis": ["Telecinco", "Mediaset Infinity"] }
+      ]
+    },
+    "motogp": {
+      "base": ["DAZN MotoGP", "Movistar Plus+"],
+      "nota": "DAZN tiene los derechos hasta 2030.",
+      "reglas": [
+        { "temporada": 2026, "evento": "Jerez|Catalunya|Cataluña|Barcelona|Valencia|Comunitat|Ricardo Tormo", "sesion": "Libres|Práctica|Clasif|Warm", "gratis": ["BeMad", "Mediaset Infinity"] },
+        { "temporada": 2026, "evento": "Jerez|Catalunya|Cataluña|Barcelona|Valencia|Comunitat|Ricardo Tormo", "sesion": "Sprint|Carrera", "gratis": ["Telecinco", "Mediaset Infinity"] }
+      ]
+    },
+    "wsbk": { "base": ["DAZN"], "nota": "Teledeporte ya no lo emite desde 2026." },
+    "indycar": {
+      "base": ["Movistar Plus+"],
+      "reglas": [
+        { "sesion": "Carrera", "canales": ["Movistar Plus+ (#Vamos)"] },
+        { "sesion": "Libres|Práctica|Clasif|Warm", "canales": ["IndyCar Live! (pago)"] }
+      ]
+    },
+    "nascar": { "base": ["DAZN"] },
+    "wec": {
+      "base": ["Eurosport (DAZN · HBO Max)", "FIAWEC+"],
+      "reglas": [
+        { "sesion": "Clasif|Hyperpole", "canales": ["FIAWEC+", "YouTube FIA WEC"] },
+        { "sesion": "Libres|Práctica", "canales": ["FIAWEC+"] }
+      ]
+    },
+    "imsa": { "base": ["YouTube IMSA (gratis)", "IMSA.tv"] },
+    "wrc": { "base": ["Rally.TV (también en DAZN)"], "nota": "Esport3 emite resúmenes en catalán." }
+  }
+}

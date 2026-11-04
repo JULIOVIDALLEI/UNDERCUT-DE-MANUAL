@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // UND — actualizador de datos (Node 20+, sin dependencias)
-// Se ejecuta en GitHub Actions cada 30 min y escribe data/data.json
+// Se ejecuta en GitHub Actions cada 5 min (el mínimo que permite GitHub) y escribe data/*.json
 // Fuentes: Jolpica (F1), MotoGP Pulselive (MotoGP), NASCAR CF feed (NASCAR),
 //          TheSportsDB (IndyCar, WEC, IMSA, WRC, WorldSBK y respaldo de todas).
 
@@ -43,6 +43,8 @@ async function tsdb(path) {
   return getJSON(`https://www.thesportsdb.com/api/v1/json/${TSDB_KEY}/${path}`);
 }
 
+// Reintento de resultados que aún no existen: cada 15 min los 3 primeros días, luego cada 12 h
+const recheck = (startISO, last) => { if (!last) return true; const age = NOW - Date.parse(startISO); return NOW - Date.parse(last) > (age < 3 * 864e5 ? 15 * 60e3 : 12 * 3600e3); };
 const iso = (d) => (d ? new Date(d).toISOString() : null);
 const num = (v) => (v === null || v === undefined || v === '' || isNaN(+v) ? null : +v);
 const clean = (s) => (s || '').toString().replace(/\s+/g, ' ').trim();
@@ -101,7 +103,8 @@ async function f1(prev, year = Y, strict = false) {
     return finalize({
       id: `f1-${year}-${r.round}`, round: +r.round, name: r.raceName,
       circuit: r.Circuit?.circuitName || '', location: [r.Circuit?.Location?.locality, r.Circuit?.Location?.country].filter(Boolean).join(', '),
-      country: r.Circuit?.Location?.country || '', sessions: S,
+      country: r.Circuit?.Location?.country || '', city: r.Circuit?.Location?.locality || '',
+      ...(r.Circuit?.Location?.lat ? { lat: +r.Circuit.Location.lat, lon: +r.Circuit.Location.long } : {}), sessions: S,
     });
   });
 
@@ -118,13 +121,14 @@ async function f1(prev, year = Y, strict = false) {
 }
 
 // ---------------------------------------------------------------- MotoGP (Pulselive)
-async function motogp(prev, year = Y, strict = false) {
+async function motogp(prev, year = Y, strict = false, catRe = /^motogp/i, key = 'motogp') {
   const B = 'https://api.motogp.pulselive.com/motogp/v1';
   const seasons = await getJSON(`${B}/results/seasons`);
   const season = seasons.find((s) => +s.year === year) || (!strict && seasons.find((s) => s.current));
   if (!season) throw new Error('MotoGP sin temporada');
   const cats = await getJSON(`${B}/results/categories?seasonUuid=${season.id}`);
-  const cat = cats.find((c) => /^motogp/i.test(c.name)) || cats[0];
+  const cat = cats.find((c) => catRe.test(c.name));
+  if (!cat) throw new Error(`${key}: categoría no encontrada`);
   const evs = [
     ...((await getJSON(`${B}/results/events?seasonUuid=${season.id}&isFinished=true`)) || []),
     ...((await getJSON(`${B}/results/events?seasonUuid=${season.id}&isFinished=false`)) || []),
@@ -135,7 +139,10 @@ async function motogp(prev, year = Y, strict = false) {
 
   const TYPE = { FP: ['Libres', 45], PR: ['Práctica', 60], Q: ['Clasificación', 15], SPR: ['Sprint', 30], RAC: ['Carrera', 45], WUP: ['Warm Up', 10] };
   const events = [];
+  const prevEv = new Map((prev?.events || []).map((x) => [x.id, x]));
   for (const e of evs) {
+    const pe = prevEv.get(`${key}-${e.id}`);
+    if (pe?.done && pe.sessions.filter((x) => /^(Carrera|Sprint)$/.test(x.name)).every((x) => x.result?.length)) { events.push(pe); continue; } // ya cerrado: no se vuelve a pedir
     let sess = [];
     try { sess = (await getJSON(`${B}/results/sessions?eventUuid=${e.id}&categoryUuid=${cat.id}`)) || []; } catch { sess = []; }
     await sleep(250);
@@ -160,9 +167,11 @@ async function motogp(prev, year = Y, strict = false) {
       if (o.start) S.push(o);
     }
     if (!S.length && e.date_start) S.push({ name: 'Gran Premio', start: iso(e.date_start), dur: 60 * 60, main: true, tbc: true });
+    const lat = num(e.circuit?.latitude ?? e.circuit?.lat), lon = num(e.circuit?.longitude ?? e.circuit?.lng ?? e.circuit?.lon);
     events.push(finalize({
-      id: `motogp-${e.id}`, name: clean(e.sponsored_name || e.name), circuit: e.circuit?.name || '',
+      id: `${key}-${e.id}`, uid: e.id, name: clean(e.sponsored_name || e.name), circuit: e.circuit?.name || '',
       location: [e.circuit?.place, e.country?.name].filter(Boolean).join(', '), country: e.country?.name || '', iso: e.country?.iso || '',
+      city: e.circuit?.place || '', ...(lat !== null && lon !== null ? { lat, lon } : {}),
       sessions: S,
     }));
   }
@@ -182,8 +191,8 @@ async function nascar(prev, Y = new Date().getUTCFullYear()) {
   const list = await getJSON(`https://cf.nascar.com/cacher/${Y}/race_list_basic.json`);
   const races = (list?.series_1 || []).filter((r) => r.race_name);
   if (!races.length) throw new Error('NASCAR sin calendario');
-  const prevRes = new Map();
-  for (const ev of prev?.events || []) for (const s of ev.sessions || []) if (s.main && s.result?.length) prevRes.set(ev.id, s.result);
+  const prevRes = new Map(), prevChk = new Map();
+  for (const ev of prev?.events || []) for (const s of ev.sessions || []) { if (s.main && s.result?.length) prevRes.set(ev.id, s.result); if (s.main && s.chk) prevChk.set(ev.id, s.chk); }
 
   const events = [];
   let round = 0;
@@ -198,17 +207,20 @@ async function nascar(prev, Y = new Date().getUTCFullYear()) {
       const d = r.race_date || r.date_scheduled;
       if (d) S.push({ name: 'Carrera', start: iso(/Z|[+-]\d\d:\d\d$/.test(d) ? d : d + '-05:00'), dur: 210, main: true });
     }
-    const ev = { id: `nascar-${r.race_id}`, raceId: r.race_id, round: r.race_type_id === 1 ? ++round : null, name: clean(r.race_name), circuit: clean(r.track_name), location: clean(r.track_name), country: 'USA', sessions: S };
+    const ev = { id: `nascar-${r.race_id}`, raceId: r.race_id, round: r.race_type_id === 1 ? ++round : null, name: clean(r.race_name), circuit: clean(r.track_name), location: clean(r.track_name), country: 'USA', iso: 'US', city: clean(r.track_name).replace(/\b(international|motor|super|speedway|raceway|race ?way|course|circuit|road|street|park|of|the)\b/gi, '').replace(/\s+/g, ' ').trim(), sessions: S };
     const main = S.find((s) => s.main);
     if (main && new Date(main.start).getTime() + 4 * 3600000 < NOW) {
       if (prevRes.has(ev.id)) main.result = prevRes.get(ev.id);
+      else if (!recheck(main.start, prevChk.get(ev.id))) main.chk = prevChk.get(ev.id);
       else {
+        main.chk = new Date().toISOString();
         try {
           const w = await getJSON(`https://cf.nascar.com/cacher/${Y}/1/${r.race_id}/weekend-feed.json`);
           const res = w?.weekend_race?.[0]?.results || [];
           main.result = res.sort((a, b) => a.finishing_position - b.finishing_position).slice(0, MAX_ROWS).map((x) => ({
             pos: num(x.finishing_position), name: clean(x.driver_fullname), team: clean(x.team_name || x.car_make), time: x.finishing_status || '', pts: num(x.points_earned),
           }));
+          if (main.result.length) delete main.chk; else delete main.result;
         } catch { /* aún sin resultados */ }
         await sleep(300);
       }
@@ -277,8 +289,8 @@ async function tsdbSeries(key, prev, year = Y, strict = false) {
   if (!evs.length && !strict) { year = year - 1; evs = (await tsdb(`eventsseason.php?id=${id}&s=${year}`))?.events || []; }
   if (!evs.length) throw new Error(`${key}: sin eventos en TheSportsDB`);
 
-  const prevRes = new Map();
-  for (const ev of prev?.events || []) for (const s of ev.sessions || []) if (s.id && s.result?.length) prevRes.set(s.id, s.result);
+  const prevRes = new Map(), prevChk = new Map();
+  for (const ev of prev?.events || []) for (const s of ev.sessions || []) { if (s.id && s.result?.length) prevRes.set(s.id, s.result); if (s.id && s.chk) prevChk.set(s.id, s.chk); }
 
   const groups = new Map();
   for (const e of evs) {
@@ -299,12 +311,14 @@ async function tsdbSeries(key, prev, year = Y, strict = false) {
       const s = { id: `tsdb-${e.idEvent}`, name: label, start, tbc, dur: isSP ? 25 : DUR[key] || 120, main: isRace && !isSP };
       if (isRace && new Date(start).getTime() < NOW) {
         if (prevRes.has(s.id)) s.result = prevRes.get(s.id);
+        else if (!recheck(start, prevChk.get(s.id))) s.chk = prevChk.get(s.id);
         else {
+          s.chk = new Date().toISOString();
           try {
             const rr = (await tsdb(`eventresults.php?id=${e.idEvent}`))?.results || [];
             s.result = rr.map((x) => ({ pos: num(x.intPosition), name: clean(x.strPlayer), team: clean(x.strTeam), time: clean(x.strResult || x.strDetail), pts: num(x.intPoints) }))
               .filter((x) => x.name && x.pos).sort((a, b) => a.pos - b.pos).slice(0, MAX_ROWS);
-            if (!s.result.length) delete s.result;
+            if (!s.result.length) delete s.result; else delete s.chk;
           } catch { /* sin resultados */ }
         }
         if (s.result) s.result.forEach((r) => (r._sp = isSP));
@@ -314,7 +328,7 @@ async function tsdbSeries(key, prev, year = Y, strict = false) {
     const first = g.items[0];
     events.push(finalize({
       id: `${key}-${year}-${g.round || g.base}`, round: g.round, name: g.base, circuit: clean(first.strVenue),
-      location: [clean(first.strCity), clean(first.strCountry)].filter(Boolean).join(', '), country: clean(first.strCountry), sessions: S,
+      location: [clean(first.strCity), clean(first.strCountry)].filter(Boolean).join(', '), country: clean(first.strCountry), city: clean(first.strCity), sessions: S,
     }));
   }
   events.sort((a, b) => new Date(a.start) - new Date(b.start));
@@ -456,19 +470,33 @@ function findPicture(obj, depth = 0) {
   for (const v of Object.values(obj)) { const r = findPicture(v, depth + 1); if (r) return r; }
   return null;
 }
-async function wikiFace(name) {
-  for (const lang of ['es', 'en']) {
-    try {
-      const j = await getJSON(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(name.replace(/ /g, '_'))}`, { retries: 0, timeout: 12000 });
-      if (j?.type === 'standard' && j.thumbnail?.source && RACING.test(`${j.description || ''} ${j.extract || ''}`)) return j.thumbnail.source;
-    } catch { /* no existe */ }
-  }
+const HINT = { f1: 'Formula One driver', motogp: 'MotoGP rider', moto2: 'Moto2 rider', moto3: 'Moto3 rider', wsbk: 'Superbike rider', indycar: 'IndyCar driver', nascar: 'NASCAR driver', wec: 'racing driver', imsa: 'racing driver', wrc: 'rally driver' };
+async function wikiSummary(lang, title) {
+  try {
+    const j = await getJSON(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title.replace(/ /g, '_'))}`, { retries: 0, timeout: 12000 });
+    if (j?.type === 'standard' && j.thumbnail?.source && RACING.test(`${j.description || ''} ${j.extract || ''}`)) return j.thumbnail.source;
+  } catch { /* no existe */ }
   return null;
 }
+async function wikiFace(name, key) {
+  for (const lang of ['en', 'es']) { const u = await wikiSummary(lang, name); if (u) return u; }
+  // búsqueda: "Nombre MotoGP rider" → primer artículo que sea de un piloto
+  try {
+    const q = await getJSON(`https://en.wikipedia.org/w/api.php?action=query&list=search&format=json&srlimit=3&srsearch=${encodeURIComponent(`${name} ${HINT[key] || 'racing driver'}`)}`, { retries: 0, timeout: 12000 });
+    const want = normName(name).split(' ').pop();
+    for (const r of q?.query?.search || []) {
+      if (!normName(r.title).includes(want)) continue;
+      const u = await wikiSummary('en', r.title); if (u) return u;
+    }
+  } catch { /* sin resultados */ }
+  return null;
+}
+const FACES_V = 3; // sube este número para volver a buscar las fotos que no se encontraron
 async function updateFaces(series) {
   let db = {}; try { db = JSON.parse(await fs.readFile(FACES_OUT, 'utf8')).faces || {}; } catch {}
   const before = JSON.stringify(db);
-  const set = (name, u, src) => { const k = normName(name); if (k && u) db[k] = { u, s: src, t: new Date().toISOString().slice(0, 10) }; };
+  const today = () => new Date().toISOString().slice(0, 10);
+  const set = (name, u, src) => { const k = normName(name); if (k && u && !db[k]?.u) db[k] = { u, s: src, t: today(), v: FACES_V }; };
 
   // F1: fotos oficiales vía OpenF1 (una sola petición)
   try {
@@ -476,7 +504,20 @@ async function updateFaces(series) {
     for (const d of list || []) if (d.headshot_url) { set(d.full_name, d.headshot_url, 'openf1'); set(`${d.first_name} ${d.last_name}`, d.headshot_url, 'openf1'); }
   } catch (e) { log('  OpenF1:', e.message); }
 
-  // Lista de pilotos por prioridad: líderes del mundial primero, luego los de resultados
+  // MotoGP / Moto2 / Moto3: lista oficial de pilotos con sus fotos (una sola petición)
+  try {
+    const riders = await getJSON('https://api.motogp.pulselive.com/motogp/v1/riders');
+    let found = 0;
+    for (const r of Array.isArray(riders) ? riders : riders?.riders || []) {
+      const pics = r.current_career_step?.pictures || r.pictures || {};
+      const u = pics.profile?.main || pics.portrait || pics.profile?.secondary || findPicture(pics);
+      const nm = r.full_name || [r.name, r.surname].filter(Boolean).join(' ');
+      if (u && nm) { set(nm, u, 'motogp'); found++; }
+    }
+    log(`  MotoGP: ${found} fotos en la lista oficial`);
+  } catch (e) { log('  MotoGP riders:', e.message); }
+
+  // Resto: por prioridad (líderes del mundial primero)
   const want = [];
   for (const [key, s] of Object.entries(series)) {
     for (const d of s.standings?.drivers || []) want.push({ key, name: d.name, rid: d.rid });
@@ -487,13 +528,20 @@ async function updateFaces(series) {
     const k = normName(w.name); if (!k || seen.has(k)) continue; seen.add(k);
     const e = db[k];
     if (e?.u) continue;
-    if (e && Date.now() - Date.parse(e.t) < 7 * 864e5) continue;
+    if (e && e.v === FACES_V && Date.now() - Date.parse(e.t) < 7 * 864e5) continue;
     todo.push(w);
   }
-  const LIMIT = 90; let n = 0;
+  const LIMIT = 60; let n = 0; const t0 = Date.now(), bySrc = {};
   for (const w of todo.slice(0, LIMIT)) {
+    if (Date.now() - t0 > 75000) break; // como mucho 75 s por pasada; el resto en la siguiente
     let u = null, src = '';
-    if (w.rid) { try { u = findPicture(await getJSON(`https://api.motogp.pulselive.com/motogp/v1/riders/${w.rid}`, { retries: 0 })); src = 'motogp'; } catch {} }
+    if (w.rid) {
+      try {
+        const j = await getJSON(`https://api.motogp.pulselive.com/motogp/v1/riders/${w.rid}`, { retries: 0 });
+        const pics = j?.current_career_step?.pictures || j?.pictures || {};
+        u = pics.profile?.main || pics.portrait || findPicture(pics) || null; src = 'motogp';
+      } catch {}
+    }
     if (!u) {
       try {
         const pl = (await tsdb(`searchplayers.php?p=${encodeURIComponent(w.name)}`))?.player || [];
@@ -501,26 +549,154 @@ async function updateFaces(series) {
         u = hit && (hit.strCutout || hit.strRender || hit.strThumb) || null; src = 'thesportsdb';
       } catch {}
     }
-    if (!u) { u = await wikiFace(w.name); src = 'wikipedia'; }
-    const k = normName(w.name);
-    db[k] = u ? { u, s: src, t: new Date().toISOString().slice(0, 10) } : { u: null, t: new Date().toISOString().slice(0, 10) };
+    if (!u) { u = await wikiFace(w.name, w.key); src = 'wikipedia'; }
+    db[normName(w.name)] = u ? { u, s: src, t: today(), v: FACES_V } : { u: null, t: today(), v: FACES_V };
+    if (u) bySrc[src] = (bySrc[src] || 0) + 1;
     n++;
   }
   if (JSON.stringify(db) !== before) {
     await fs.writeFile(FACES_OUT, JSON.stringify({ updated: new Date().toISOString(), faces: db }));
-    log(`Fotos: ${Object.values(db).filter((x) => x.u).length} con foto (${n} búsquedas nuevas, ${Math.max(0, todo.length - LIMIT)} pendientes).`);
+    log(`Fotos: ${Object.values(db).filter((x) => x.u).length} con foto (${n} búsquedas nuevas ${JSON.stringify(bySrc)}, ${Math.max(0, todo.length - n)} pendientes).`);
   }
+}
+
+// ---------------------------------------------------------------- COORDENADAS (para el tiempo)
+const PLACES_OUT = new URL('../data/places.json', import.meta.url);
+const ISO = { spain: 'ES', italy: 'IT', france: 'FR', germany: 'DE', portugal: 'PT', austria: 'AT', belgium: 'BE', netherlands: 'NL', 'united kingdom': 'GB', uk: 'GB', 'great britain': 'GB', england: 'GB', usa: 'US', 'united states': 'US', canada: 'CA', mexico: 'MX', brazil: 'BR', argentina: 'AR', japan: 'JP', china: 'CN', australia: 'AU', qatar: 'QA', bahrain: 'BH', 'saudi arabia': 'SA', uae: 'AE', 'united arab emirates': 'AE', singapore: 'SG', malaysia: 'MY', thailand: 'TH', indonesia: 'ID', india: 'IN', hungary: 'HU', 'czech republic': 'CZ', czechia: 'CZ', finland: 'FI', sweden: 'SE', estonia: 'EE', greece: 'GR', croatia: 'HR', kenya: 'KE', chile: 'CL', paraguay: 'PY', monaco: 'MC', azerbaijan: 'AZ', turkey: 'TR', poland: 'PL', latvia: 'LV', 'south africa': 'ZA', 'new zealand': 'NZ', 'san marino': 'SM' };
+async function geocode(q, iso) {
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5&language=en&format=json${iso ? `&countryCode=${iso}` : ''}`;
+  const j = await getJSON(url, { retries: 1, timeout: 12000 });
+  const r = (j?.results || [])[0];
+  return r ? { lat: +r.latitude.toFixed(3), lon: +r.longitude.toFixed(3) } : null;
+}
+async function updateGeo(series) {
+  let db = {}; try { db = JSON.parse(await fs.readFile(PLACES_OUT, 'utf8')); } catch {}
+  const before = JSON.stringify(db); let calls = 0;
+  for (const s of Object.values(series)) for (const ev of [...(s.events || []), ...(s.next?.events || [])]) {
+    if (ev.lat != null) continue;
+    const iso = (ev.iso || ISO[String(ev.country || '').toLowerCase()] || '').toUpperCase();
+    const tries = [ev.city, ev.circuit, String(ev.location || '').split(',')[0]].map((x) => clean(x)).filter((x) => x && x.length > 2);
+    for (const q of [...new Set(tries)]) {
+      const k = `${q}|${iso}`;
+      if (!(k in db) && calls < 40) { try { db[k] = await geocode(q, iso); } catch { continue; } calls++; }
+      if (db[k]) { ev.lat = db[k].lat; ev.lon = db[k].lon; break; }
+    }
+  }
+  if (JSON.stringify(db) !== before) { await fs.writeFile(PLACES_OUT, JSON.stringify(db)); log(`Coordenadas: ${calls} búsquedas nuevas.`); }
+}
+
+// ---------------------------------------------------------------- AVISOS 15 MIN ANTES (ntfy)
+// La app guarda tus preferencias en el tema "<tema>-cfg" de ntfy; aquí se leen y se programan
+// los avisos en ntfy con entrega diferida, para que lleguen justo 15 minutos antes.
+const ALERTS_CFG = new URL('../data/avisos.json', import.meta.url);
+const ALERTS_SENT = new URL('../data/avisos-enviados.json', import.meta.url);
+export const TOPIC = 'und-' + String(process.env.GITHUB_REPOSITORY || 'local/und').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 56);
+const NAMES2 = { f1: 'F1', motogp: 'MotoGP', moto2: 'Moto2', moto3: 'Moto3', wsbk: 'WorldSBK', indycar: 'IndyCar', nascar: 'NASCAR', wec: 'WEC', imsa: 'IMSA', wrc: 'WRC' };
+function sessionType(name, main) {
+  const n = String(name).toLowerCase();
+  if (/superpole race|sprint/.test(n)) return 'sprint';
+  if (/clasif|qualif|hyperpole|superpole|shootout/.test(n)) return 'clasif';
+  if (/libre|práctica|practica|practice|warm|shakedown/.test(n)) return 'libres';
+  if (main || /carrera|race|power stage|tramos/.test(n)) return 'carrera';
+  return 'libres';
+}
+function tvText(tv, key, ev, se) {
+  const c = tv?.series?.[key === 'moto2' || key === 'moto3' ? 'motogp' : key]; if (!c) return '';
+  let canales = c.base || [], gratis = [];
+  const year = new Date(se.start).getFullYear(), hay = `${ev.name} ${ev.circuit || ''} ${ev.location || ''}`;
+  for (const r of c.reglas || []) {
+    try {
+      if (r.temporada && r.temporada !== year) continue;
+      if (r.pais && ev.country !== r.pais && !String(ev.location || '').includes(r.pais)) continue;
+      if (r.evento && !new RegExp(r.evento, 'i').test(hay)) continue;
+      if (r.sesion && !new RegExp(r.sesion, 'i').test(se.name)) continue;
+    } catch { continue; }
+    if (r.canales) canales = r.canales;
+    if (r.gratis) gratis = [...gratis, ...r.gratis];
+  }
+  return (gratis.length ? `GRATIS ${gratis.join(' · ')} · ` : '') + canales.join(' · ');
+}
+async function updateAlerts(series) {
+  // Cada móvil guarda sus preferencias (con su propio tema de ntfy) en "<tema>-cfg"; aquí se juntan todas.
+  let store = { devices: {} }; try { store = JSON.parse(await fs.readFile(ALERTS_CFG, 'utf8')); if (!store.devices) store = { devices: {} }; } catch {}
+  const beforeStore = JSON.stringify(store);
+  try {
+    const txt = await getText(`https://ntfy.sh/${TOPIC}-cfg/json?poll=1&since=12h`);
+    for (const l of txt.split('\n').filter(Boolean)) {
+      let m; try { m = JSON.parse(l); } catch { continue; }
+      if (m?.event !== 'message') continue;
+      let c; try { c = JSON.parse(m.message); } catch { continue; }
+      if (!c || typeof c !== 'object' || !/^[a-z0-9]{4,12}$/.test(String(c.dev || '')) || !/^[a-z0-9-]{8,64}$/.test(String(c.topic || ''))) continue;
+      const old = store.devices[c.dev];
+      if (!old || (c.t || 0) > (old.t || 0)) store.devices[c.dev] = { on: !!c.on, series: c.series || {}, tipos: c.tipos || {}, tz: c.tz, url: c.url, topic: c.topic, t: c.t || 0 };
+    }
+  } catch (e) { log('  ntfy cfg:', e.message); }
+  const now = Date.now();
+  for (const [d, c] of Object.entries(store.devices)) if (now - (c.t || 0) > 45 * 864e5) delete store.devices[d]; // móviles que no abren la app en 45 días
+  if (JSON.stringify(store) !== beforeStore) { await fs.writeFile(ALERTS_CFG, JSON.stringify(store)); log(`Avisos: ${Object.keys(store.devices).length} móviles configurados.`); }
+  const devices = Object.entries(store.devices).filter(([, c]) => c.on);
+  if (!devices.length) return;
+
+  let sent = {}; try { sent = JSON.parse(await fs.readFile(ALERTS_SENT, 'utf8')); } catch {}
+  const beforeSent = JSON.stringify(sent);
+  let tv = null; try { tv = JSON.parse(await fs.readFile(new URL('../data/tv.json', import.meta.url), 'utf8')); } catch {}
+  let n = 0;
+  for (const [key, s] of Object.entries(series)) {
+    for (const ev of [...(s.events || []), ...(s.next?.events || [])]) for (const se of ev.sessions || []) {
+      if (se.tbc || !se.start) continue;
+      const t = Date.parse(se.start), at = t - 15 * 60000;
+      if (t <= now || at > now + 3 * 3600e3) continue; // solo lo que empieza en las próximas ~3 h
+      const type = sessionType(se.name, se.main);
+      const tvs = tvText(tv, key, ev, se);
+      for (const [dev, cfg] of devices) {
+        if (!cfg.series?.[key] || !cfg.tipos?.[type]) continue;
+        const id = `${dev}|${key}|${ev.name}|${se.name}|${se.start}`;
+        if (sent[id]) continue;
+        const tz = cfg.tz || 'Europe/Madrid';
+        let fT, fD; try { fT = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: tz }); fD = new Intl.DateTimeFormat('es-ES', { weekday: 'long', timeZone: tz }); } catch { fT = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }); fD = new Intl.DateTimeFormat('es-ES', { weekday: 'long', timeZone: 'Europe/Madrid' }); }
+        const base = String(cfg.url || '').replace(/[^/]*$/, '');
+        const body = {
+          topic: cfg.topic, priority: 4, tags: ['checkered_flag'],
+          title: `⏱️ ${at > now ? 'En 15 min' : `En ${Math.max(1, Math.round((t - now) / 60000))} min`} · ${NAMES2[key] || key} · ${se.name}`,
+          message: `${ev.name}\n🕒 ${fD.format(t)} ${fT.format(t)}${tvs ? `\n📺 ${tvs}` : ''}`,
+          ...(at > now + 60000 ? { delay: String(Math.floor(at / 1000)) } : {}),
+          ...(/^https:\/\//.test(cfg.url || '') ? { click: cfg.url, icon: base + 'icons/icon-192.png' } : {}),
+        };
+        try {
+          const r = await fetch('https://ntfy.sh/', { method: 'POST', headers: { 'Content-Type': 'application/json', 'User-Agent': UA }, body: JSON.stringify(body) });
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          sent[id] = new Date().toISOString(); n++;
+        } catch (e) { log('  ntfy envío:', e.message); }
+      }
+    }
+  }
+  for (const [k, v] of Object.entries(sent)) if (now - Date.parse(v) > 4 * 864e5) delete sent[k];
+  if (JSON.stringify(sent) !== beforeSent) await fs.writeFile(ALERTS_SENT, JSON.stringify(sent));
+  if (n) log(`Avisos: ${n} programados.`);
 }
 
 // ---------------------------------------------------------------- main
 async function main() {
+  try { // datos fijos que la app necesita (tema de avisos)
+    const meta = JSON.stringify({ topic: TOPIC, repo: process.env.GITHUB_REPOSITORY || '' });
+    const mp = new URL('../data/meta.json', import.meta.url);
+    let old = ''; try { old = await fs.readFile(mp, 'utf8'); } catch {}
+    if (old !== meta) { await fs.mkdir(new URL('../data/', import.meta.url), { recursive: true }); await fs.writeFile(mp, meta); }
+  } catch {}
+  try { // mantener despierto el proyecto de Supabase de la cuenta (los gratuitos se pausan si no se usan en 7 días)
+    const cfg = await fs.readFile(new URL('../config.js', import.meta.url), 'utf8');
+    const url = (cfg.match(/supabaseUrl:\s*'([^']+)'/) || [])[1], key = (cfg.match(/supabaseKey:\s*'([^']+)'/) || [])[1];
+    if (url && key) await fetch(`${url}/auth/v1/health`, { headers: { apikey: key } }).catch(() => {});
+  } catch {}
   try { await updateNews(); } catch (e) { log('Noticias ERROR:', e.message); }
 
   let prev = { series: {} };
   try { prev = JSON.parse(await fs.readFile(OUT, 'utf8')); } catch { /* primera vez */ }
 
   const JOBS = [
-    ['f1', f1], ['motogp', motogp], ['indycar', null], ['nascar', nascar],
+    ['f1', f1], ['motogp', motogp],
+    ['moto2', (p, y, st) => motogp(p, y, st, /^moto2/i, 'moto2')], ['moto3', (p, y, st) => motogp(p, y, st, /^moto3/i, 'moto3')],
+    ['indycar', null], ['nascar', nascar],
     ['wec', null], ['imsa', null], ['wrc', null], ['wsbk', null],
   ];
   const out = { version: 1, updated: null, series: {} };
@@ -535,6 +711,7 @@ async function main() {
     } catch (e) {
       if (fn) log(`  ${key} principal falló: ${e.message} → TheSportsDB`);
       try {
+        if (!TSDB[key]) throw e;
         out.series[key] = { ...(await tsdbSeries(key, p)), status: 'ok', fallback: !!fn };
       } catch (e2) {
         log(`  ${key} ERROR: ${e2.message}`);
@@ -544,6 +721,7 @@ async function main() {
     log(`  ${key}: ${out.series[key].events.length} eventos`);
 
     // Próxima temporada: aparece sola en cuanto el campeonato publica el calendario
+    if (key === 'moto2' || key === 'moto3') continue; // mismo calendario que MotoGP
     const ny = (out.series[key].season || Y) + 1;
     const pn = p?.next?.season === ny ? p.next : null;
     let nx = null;
@@ -556,7 +734,9 @@ async function main() {
   }
 
   markChanges(prev.series || {}, out.series);
-  try { await updateFaces(out.series); } catch (e) { log('Fotos ERROR:', e.message); }
+  try { await fs.rm(FACES_OUT, { force: true }); } catch {} // fotos de pilotos desactivadas: se borra el archivo antiguo
+  try { await updateGeo(out.series); } catch (e) { log('Coordenadas ERROR:', e.message); }
+  try { await updateAlerts(out.series); } catch (e) { log('Avisos ERROR:', e.message); }
 
   if (JSON.stringify(out.series) === JSON.stringify(prev.series)) { log('Sin cambios.'); return; }
   out.updated = new Date().toISOString();
